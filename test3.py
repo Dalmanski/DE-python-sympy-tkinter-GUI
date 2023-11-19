@@ -1,20 +1,22 @@
 import sympy as sp
 
-x, y, C_1, C_2, e = sp.symbols("x y C_1 C_2 e")
+# Define the variables
+x, C = sp.symbols('x C')
 
-# Define the equation
-equation = input("Enter your problem:")
-#equation = sp.Eq(y,10*C_1*e**(-2*x)+20*C_2*e**(3*x))
+# Define the differential equation
+equation = sp.Eq(sp.diff(sp.Symbol('y')(x), x) - sp.Symbol('y')(x)**2 * sp.exp(-2*x), 0)
 
- # Initialize variables to store left-hand side and right-hand side of equations
-eqlhs, eqrhs = equation.split('=')
+# Solve the differential equation
+solution = sp.dsolve(equation)
 
-# Parse the user-provided equations
-eqlhs = sp.sympify(eqlhs.strip())
-eqrhs = sp.sympify(eqrhs.strip())
+# Extract the solution expression
+y_solution = solution.rhs
 
-equation = sp.Eq( eqlhs, eqrhs)
+# Display the solution
+print("Solution:")
+print(f"y = {y_solution}")
+print(f"y = {sp.pretty(y_solution)}")
 
-print(f"The equation is: {equation}")
+
 
 

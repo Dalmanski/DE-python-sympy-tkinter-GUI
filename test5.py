@@ -1,64 +1,29 @@
-import tkinter as tk
-from tkinter import ttk
-import numpy as np
+from sympy import symbols, Function, dsolve, Eq, exp, tan, sympify
+import sympy as sp
 
-def add_student():
-    # Get the student name from the entry widget
-    student_name = entry.get()
 
-    # Add the student name to the list
-    student_names.append(student_name)
+# Define the variables
+x, C = symbols('x C')
+y = Function('y')(x)
 
-    # Update the result label
-    update_result_label()
+# Define the differential equation
 
-def find_student():
-    try:
-        # Get the position from the entry widget
-        position = int(entry_position.get())
+equation = Eq(y.diff(x) - y**2 * exp(-2*x), 0)
+#equation = Eq(tan(x) * y.diff(x) - y, 0)
+#equation = Eq(y.diff(x) - 3*x**2*y, 0)
+print(equation)
+print(sp.pretty(equation))
 
-        # Retrieve the student name based on the position
-        student_name = student_names[position]
+# Solve the differential equation
+solution = dsolve(equation)
 
-        # Display the result in the label
-        result_label.config(text=f'Student at position {position}: {student_name}')
-    except (ValueError, IndexError):
-        result_label.config(text=f'Error: Invalid position')
+# Extract the solution expression
+y_solution = solution.rhs
 
-def update_result_label():
-    # Display the list of student names in the label
-    result_label.config(text=f'Student Names: {student_names}')
-
-# Create the main application window
-root = tk.Tk()
-root.title("Student Array Viewer")
-
-# List to store student names
-student_names = []
-
-# Create an entry widget for adding students
-entry = tk.Entry(root, width=30)
-entry.pack(pady=5)
-
-# Create a button to add students
-add_button = tk.Button(root, text="Add Student", command=add_student)
-add_button.pack(pady=5)
-
-# Create a label to display the list of students
-result_label = tk.Label(root, text="")
-result_label.pack(pady=10)
-
-# Entry widget for inputting the position
-entry_position = tk.Entry(root, width=10)
-entry_position.pack(pady=5)
-
-# Button to find a student based on position
-find_button = tk.Button(root, text="Find Student", command=find_student)
-find_button.pack(pady=5)
-
-# Start the Tkinter main event loop
-root.mainloop()
-
+# Display the solution
+print("Solution:")
+print(f"y = {y_solution}")
+print(f"y = {sp.pretty(y_solution)}")
 
 
 
