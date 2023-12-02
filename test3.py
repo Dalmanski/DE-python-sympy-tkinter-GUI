@@ -1,21 +1,20 @@
-import sympy as sp
+from sympy import symbols, Function, exp, Eq, simplify
 
-# Define the variables
-x, C = sp.symbols('x C')
+# Define the variable
+x = symbols('x')
 
-# Define the differential equation
-equation = sp.Eq(sp.diff(sp.Symbol('y')(x), x) - sp.Symbol('y')(x)**2 * sp.exp(-2*x), 0)
+# Define y as a function of x
+y = Function('y')(x)
 
-# Solve the differential equation
-solution = sp.dsolve(equation)
+# Original expression
+original_expression = -y**2 / exp(2*x)
 
-# Extract the solution expression
-y_solution = solution.rhs
+# Convert to the desired form
+original_expression = original_expression.subs(exp(2*x), exp(-2*x))
 
-# Display the solution
-print("Solution:")
-print(f"y = {y_solution}")
-print(f"y = {sp.pretty(y_solution)}")
+# Display the result
+print(original_expression)
+
 
 
 

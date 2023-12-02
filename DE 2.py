@@ -2,14 +2,16 @@ import sympy as sp
 import string
 import re
 import tkinter as tk
-from tkinter import ttk
 import math
 import tkinter.font as tkFont
 import numpy as np
-from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan
+from tkinter import ttk
+from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, Derivative, SympifyError
+from PIL import Image, ImageTk
+
 
 howManyDerive = 0
-x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y_prime y_prime2") 
+x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y\' y\'\'") 
 
 def find_variable(expr):
     for term in expr.args:
@@ -20,42 +22,30 @@ def find_variable(expr):
             
 def replacement(problem):
     replacements = {
+        ' ': '',
         '^': '**',
         'c_1': 'C_1',
         'c_2': 'C_2',
-        'C_1e': 'C_1*e',
-        'C_2e': 'C_2*e',
-        'C_1sin': 'C_1*sin',
-        'C_1cos': 'C_1*cos',
-        'C_1tan': 'C_1*tan',
-        'C_2sin': 'C_2*sin',
-        'C_2cos': 'C_2*cos',
-        'C_2tan': 'C_2*tan',
-        'sinx': 'sin(x)',
-        'cosx': 'cos(x)',
-        'tanx': 'tan(x)',
+        'e^': 'exp',
         '{': '(',
-        '}': ')',
-        'Asin': 'A*sin',
-        'Acos': 'A*cos',
-        'Atan': 'A*tan'
+        '}': ')'
     }
         
     for find, replace in replacements.items():
         problem = problem.replace(find, replace)
 
     # Read variables such as a-z and numbers -1000000 to 1000000
-    for i in string.ascii_lowercase:
-        if i+'x' in problem:
-            problem = problem.replace(i+'x', i+'*x')
-        if i+'t' in problem:
-            problem = problem.replace(i+'t', '('+i+'*t)')
-            #x = sp.symbols('t')
-    for i in range(-1000000, 1000001):
-        if str(i)+'x' in problem:
-            problem = problem.replace(str(i)+'x', str(i)+'*x')
-        if str(i)+'t' in problem:
-            problem = problem.replace(str(i)+'t', str(i)+'*t')
+    #for i in string.ascii_lowercase:
+    #    if i+'x' in problem:
+    #        problem = problem.replace(i+'x', i+'*x')
+    #    if i+'t' in problem:
+    #        problem = problem.replace(i+'t', '('+i+'*t)')
+    #        #x = sp.symbols('t')
+    #for i in range(-1000000, 1000001):
+    #    if str(i)+'x' in problem:
+    #        problem = problem.replace(str(i)+'x', str(i)+'*x')
+    #    if str(i)+'t' in problem:
+    #        problem = problem.replace(str(i)+'t', str(i)+'*t')
     return problem
 
 def derive(problem):
@@ -107,7 +97,7 @@ def derive(problem):
     print(f'dy_dx = {dy_dx}')
 
 
-def Derivative():
+def Derivatives():
     # Retrieve user input from the entry widget
     user_function = entry.get()
     derive(user_function)
@@ -326,37 +316,55 @@ def Arbitrary_Constant():
 def Separable_Variables():
 
     # Define the variables
-    x, C = symbols('x C')
-    y = Function('y')(x)
-    global k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 
-
-    problem = entry.get()
-    problem = problem.replace('dy/dx','')
-    problem = problem.replace('y.diff(x)','')
-    problem = replacement(problem)
-    problem = problem.replace('y','y(x)')
-
+    x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y_prime y_prime2") 
+    y = Function('y')(x)   
+    
+    mode = 'add'
     #problem = "y.diff(x) - y**2 * exp(-2*x) = 0"
     #problem = "tan(x)*y.diff(x)-y=0"
     #problem = "y.diff(x)-3*x**2*y=0"
     #problem = "dy/dx-3*x**2*y=0"
     #if "*dy/dx" in problem:
+    problem = entry.get()
+    print(f"Your problem = {problem}")
+    problem = problem.replace(' ','')
+    problem = problem.replace('y\'','y.diff(x)')
+    problem = problem.replace('dy/dx','y.diff(x)')
+    if 'y.diff(x)*' in problem or '*y.diff(x)' in problem:
+        mode = 'multiply'
+    print(f'{mode} the dx/dy')
+    problem = problem.replace('dy/dx','')
+    problem = problem.replace('y.diff(x)','')
+    problem = replacement(problem)
+    problem = problem.replace('y','y(x)')
+    print(f"Your rephrase problem = {problem}")
 
     # Initialize variables to store left-hand side and right-hand side of equations
     eqlhs, eqrhs = problem.split('=')
+    print(f"before eqlhs = {eqlhs}, eqrhs = {eqrhs}")
 
     # Parse the user-provided equations
     eqlhs = sympify(eqlhs.strip())
-
+        
     # Define the right-hand side separately
     eqrhs = sympify(eqrhs.strip())
 
     #if "*dy/dx" in problem:
         #equation = Eq(eqlhs, eqrhs)
     #else:
-    equation = Eq(y.diff(x) + eqlhs, eqrhs)
+    if mode == 'multiply':
+        equation = Eq(Derivative(y, x) * eqlhs, eqrhs)
+        str_eqlhs = str(equation.lhs)
+        if 'y(x)*' in str_eqlhs:
+            str_eqlhs = str_eqlhs.replace('y(x)*','y(x)+')
+            eqlhs = sympify(str_eqlhs)
+            equation = Eq(eqlhs, eqrhs)
+    else:
+        equation = Eq(y.diff(x) + eqlhs, eqrhs)
+
     result_text = f"Solution:"
     result_text += f"\n\nEquation :\n{sp.pretty(equation)}"
+    print(f"eqlhs = {eqlhs}, eqrhs = {eqrhs}")
     print("Original Equation:")
     print(equation)
     print(sp.pretty(equation))
@@ -364,7 +372,7 @@ def Separable_Variables():
     # Solve the differential equation
     solution = dsolve(equation)
     result_text += f"\n\nFinal answer:\n{sp.pretty(solution)}"
-    # Extract the solution expression
+
     y_solution = solution.rhs
 
     # Display the solution
@@ -372,6 +380,7 @@ def Separable_Variables():
     print(f"y = {y_solution}")
     print(f"y = {sp.pretty(y_solution)}")
     output_label.config(text=result_text)
+    final_label.config(text=sp.pretty(solution))
 
 def output():
      # Convert the derivative to a plain string and format it
@@ -385,23 +394,42 @@ def output():
 
     # Display the result
     #result_text = f"The derivative is: \n{variable_name}={plain_string_derivative}"
-    result_text = f"The derivative is: \n {eqlhs} = {sp.pretty(plain_string_derivative)}"
+    result_text = f"The derivative is: \n {sp.pretty(eqlhs)} = {sp.pretty(plain_string_derivative)}"
     output_label.config(text=result_text)
 
-
+def is_valid_sympy_expression(expression_str):
+    expression_str = expression_str.replace('y\'','dy/dx')
+    eqlhs, eqrhs = expression_str.split('=')
+    try:
+        sympify(eqlhs)
+        sympify(eqrhs)
+        return True
+    except SympifyError:
+        return False
 
 #FRONT END, diri mo mag design2
 def main():
     # diri mo himo na mura FRONT END or design
     root = tk.Tk()
-    root.configure(bg='lightblue')
     root.title('Differential Equation')
     root.geometry("720x480")
+    root.resizable(False, False)
+
+   # Load the background image and resize it to fit the window
+    background_image = Image.open("design.png")
+    background_image = background_image.resize((root.winfo_reqwidth()*4, root.winfo_reqheight()*5), 3)  # 3 corresponds to ANTIALIAS
+
+    background_photo = ImageTk.PhotoImage(background_image)
+
+    # Create a label to display the background image
+    background_label = tk.Label(root, image=background_photo)
+    background_label.place(relwidth=1, relheight=1.8)
 
     # Create a ComboBox
     style = ttk.Style()
     style.configure('TCombobox', relief='solid', highlightbackground='black', highlightcolor='black', highlightthickness=1, justify='center')
     combo = ttk.Combobox(root, values=('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Option 4'), style='TCombobox')
+    combo.set('Derivative')
      
     # Set items for the ComboBox
     #combo['values'] = ('Derivative', 'Abritary Constant', 'Option 3', 'Option 4')
@@ -414,7 +442,7 @@ def main():
     global dy_dx, eqlhs
 
     combo.pack(fill='x')
-    combo.place(relx=0.5, rely=0.5, anchor='center', y=-140)  # Set the position to (10, 10)
+    combo.place(relx=0.5, rely=0.5, anchor='center', y=-150)  # Set the position to (10, 10)
     combo.configure(width=50)  # Set the width to 100
 
     # Function to handle the selection
@@ -430,12 +458,38 @@ def main():
 
     def button_clicked():
         selected_item = combo.get()
-        if selected_item == "Derivative":
-            Derivative()
-        elif selected_item == "Arbitrary Constant":
-            Arbitrary_Constant()
-        elif selected_item == "Separable Variables":
-            Separable_Variables()
+        user_function = entry.get()
+        elimination = entryEliminate.get()
+        if user_function:
+            if '=' in user_function:
+                if is_valid_sympy_expression(user_function):
+                    if selected_item == "Derivative":
+                        Derivatives()
+                    elif selected_item == "Arbitrary Constant":
+                        if elimination:
+                            Arbitrary_Constant()
+                        else:
+                            result_text = f"\nYou didn't input any elimination.\n"
+                            result_text += f"\nFor example, input k or any variables\n"
+                            result_text += f"\nIf there's 2 elimination, just type \"C_1 C_2\" or any 2 variables\n"
+                            output_label.config(text=result_text)
+                    elif selected_item == "Separable Variables":
+                        Separable_Variables()
+                else:
+                    result_text = f"\nThis is not a correct equation.\n"
+                    result_text += f"\nThe correct way to enter an equation is like this:"
+                    result_text += f"\ny=C_1*exp(2*x)+C_2*exp(-3*x)"
+                    result_text += f"\ntan(x) * dy/dx - y = 0\n"
+                    result_text += f"\nMake sure that there's multiplication (*) between terms.\n"
+                    output_label.config(text=result_text)
+            else:
+                result_text = f"\nThere's no = sign.\n"
+                output_label.config(text=result_text)
+        else:
+            result_text = f"\nYour input is empty.\n"
+            # Handle the case where the input is empty
+            output_label.config(text=result_text)
+
         # Add more conditions for other options if needed
 
     # Bind the function to the <<ComboboxSelected>> event
@@ -446,17 +500,19 @@ def main():
     custom_font2 = tkFont.Font(family="Computer Modern", size=10)  # Set your desired font family and size
 
     # Create a label with the specified font and text
-    labelTitle = tk.Label(root, text="DIFFERENTIAL EQUATION", font=custom_font)
-    labelTitle.pack(fill='x')
-    labelTitle.place(relx=0.5, rely=0.5, anchor='center', y=-200)
-    labelTitle.configure(width=50)
+    #labelTitle = tk.Label(root, text="DIFFERENTIAL EQUATION", font=custom_font)
+    #labelTitle.pack(fill='x')
+    #labelTitle.place(relx=0.5, rely=0.5, anchor='center', y=-200)
+    #labelTitle.configure(width=50)
 
     # Create an entry widget for user input
     global entry
     entry = tk.Entry(root, relief='solid', highlightthickness=1, justify='center')
     entry.pack(fill='x')
-    entry.place(relx=0.5, rely=0.5, anchor='center', y=-100)  # Set the position to (10, 10)
-    entry.configure(width=100)  # Set the width to 100
+    #entry.place(relx=0.5, rely=0.5, anchor='center', y=-100)  
+    #entry.configure(width=100)  
+    entry.place(relx=0.5, rely=0.5, anchor='center', x=-190, y=-100)  
+    entry.configure(width=50)  
 
      # Create an entry widget for user input arbitary constant eliminate
     global entryEliminate
@@ -469,7 +525,7 @@ def main():
     # Create a button to trigger the action
     button = tk.Button(root, text="Compute", command=button_clicked, relief='raised', highlightthickness=1)
     button.pack(fill='x')
-    button.place(relx=0.5, rely=0.5, anchor='center', y=-60)
+    button.place(relx=0.5, rely=0.5, anchor='center', y=-50)
     button.configure(width=50)
 
     # Create a label to display the output
@@ -479,6 +535,14 @@ def main():
     output_label.pack(fill='x')
     output_label.place(relx=0.5, rely=0.5, anchor='center', y=90)
     output_label.configure(width=50)
+
+    # Create a label to display the final answer
+    global final_label
+    final_label = tk.Label(root, text="", relief='flat', highlightthickness=1, font=custom_font2)
+    final_label.pack(side='top', fill='x')
+    final_label.pack(fill='x')
+    final_label.place(relx=0.5, rely=0.5, anchor='center',x=190, y=-100)
+    final_label.configure(width=35)
 
     root.mainloop()
 

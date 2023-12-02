@@ -1,67 +1,33 @@
-import tkinter as tk
-from tkinter import ttk
-import numpy as np
+import sympy as sp
 
-def add_student():
-    # Get the student name from the entry widget
-    student_name = entry.get()
+# Define the symbolic variables
+x, C1, C2 = sp.symbols('x C1 C2')
+y = sp.Function('y')(x)
 
-    # Split the student name by spaces
-    split_student_name = student_name.split()
+# Define the equations
+eq1 = sp.Eq(y, C1 * sp.exp(2 * x) + C2 * sp.exp(-3 * x))
+eq2 = sp.Eq(sp.diff(y, x), 2 * C1 * sp.exp(2 * x) - 3 * C2 * sp.exp(-3 * x))
 
-    # Add the split student name to the list
-    for name in split_student_name:
-        student_names.append(name)
+# Combine like terms
+combined_eq = eq1 + eq2
 
-    # Update the result label
-    update_result_label()
+# Solve for C2
+C2 = sp.solve(combined_eq, C2)[0]
 
-def find_student():
-    try:
-        # Get the position from the entry widget
-        position = int(entry_position.get())
+# Substitute C2 back into the first equation
+eq1_simplified = eq1.subs(C2, C2)
 
-        # Retrieve the student name based on the position
-        student_name = student_names[position]
+# Print the simplified equation
+print(sp.pretty(eq1_simplified))
 
-        # Display the result in the label
-        result_label.config(text=f'Student at position {position}: {student_name}')
-    except (ValueError, IndexError):
-        result_label.config(text=f'Error: Invalid position')
 
-def update_result_label():
-    # Display the list of student names in the label
-    result_label.config(text=f'Student Names: {student_names}')
 
-# Create the main application window
-root = tk.Tk()
-root.title("Student Array Viewer")
 
-# List to store student names
-student_names = []
 
-# Create an entry widget for adding students
-entry = tk.Entry(root, width=30)
-entry.pack(pady=5)
 
-# Create a button to add students
-add_button = tk.Button(root, text="Add Student", command=add_student)
-add_button.pack(pady=5)
 
-# Create a label to display the list of students
-result_label = tk.Label(root, text="")
-result_label.pack(pady=10)
 
-# Entry widget for inputting the position
-entry_position = tk.Entry(root, width=10)
-entry_position.pack(pady=5)
 
-# Button to find a student based on position
-find_button = tk.Button(root, text="Find Student", command=find_student)
-find_button.pack(pady=5)
-
-# Start the Tkinter main event loop
-root.mainloop()
 
 
 

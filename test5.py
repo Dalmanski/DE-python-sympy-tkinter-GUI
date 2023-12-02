@@ -23,7 +23,7 @@ y_solution = solution.rhs
 # Display the solution
 print("Solution:")
 print(f"y = {y_solution}")
-print(f"y = {sp.pretty(y_solution)}")
+print(sp.pretty(solution))
 
 
 
