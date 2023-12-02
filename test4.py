@@ -1,29 +1,27 @@
-from sympy import symbols, Function, dsolve, Eq, exp, sympify
+import numpy as np
 
-# Define the variables
-x, C = symbols('x C')
-y = Function('y')(x)
+# Define the initial population and growth rate
+P0 = 5000
+k = np.log(1.15) / 10  # Growth rate per year
+print(k)
 
-# Input your differential equation
-user_input = "dy/dx - y**2 * exp(-2*x) = 0"
+# Define the differential equation
+def dPdt(P, t):
+    return k * P
 
-# Replace 'dy/dx' with y'
-equation_str = user_input.replace('dy/dx', "y'")
+# Solve the differential equation using separation of variables
+def solve_ode(P0, k, t):
+    return P0 * np.exp(k * t)
 
-# Parse the user-provided equation
-equation = Eq(sympify(equation_str), 0)
+# Calculate the population after 30 years
+t = 30
+P_t = solve_ode(P0, k, t)
 
-# Solve the differential equation
-solution = dsolve(equation)
+# Calculate the rate of population growth at t = 30
+growth_rate = dPdt(P_t, t)
 
-# Extract the solution expression
-y_solution = solution.rhs
+# Print the results
+print(f"Population after 30 years: {P_t:.2f}")
+print(f"Rate of population growth at t = 30: {growth_rate:.2f}")
 
-# Display the solution
-print("\nOriginal Equation:")
-print(equation)
-print()
-
-print("Solution:")
-print(f"y = {y_solution}")
 

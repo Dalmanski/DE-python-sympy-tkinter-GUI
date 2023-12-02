@@ -9,9 +9,9 @@ from tkinter import ttk
 from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, Derivative, SympifyError
 from PIL import Image, ImageTk
 
-
 howManyDerive = 0
 x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y\' y\'\'") 
+
 
 def find_variable(expr):
     for term in expr.args:
@@ -19,7 +19,8 @@ def find_variable(expr):
             variables = [symbol for symbol in term.free_symbols if symbol != C_1 and symbol != C_2 and symbol != k and symbol != e]
             if variables:
                 return variables[0]
-            
+
+
 def replacement(problem):
     replacements = {
         ' ': '',
@@ -47,6 +48,7 @@ def replacement(problem):
     #    if str(i)+'t' in problem:
     #        problem = problem.replace(str(i)+'t', str(i)+'*t')
     return problem
+
 
 def derive(problem):
     global dy_dx
@@ -101,7 +103,11 @@ def Derivatives():
     # Retrieve user input from the entry widget
     user_function = entry.get()
     derive(user_function)
-    output()
+    plain_string_derivative = str(dy_dx)
+    # Display the result
+    result_text = f"The derivative is: \n {sp.pretty(eqlhs)} = {sp.pretty(plain_string_derivative)}"
+    output_label.config(text=result_text)
+    final_label.config(text=result_text)
 
 
 def Arbitrary_Constant():
@@ -118,7 +124,7 @@ def Arbitrary_Constant():
     # Split by spaces
     split_elimination = elimination.split()
 
-    # List to store student names
+    # List to store
     eliminations = []
     # Add the split to the list
     for name in split_elimination:
@@ -313,6 +319,7 @@ def Arbitrary_Constant():
     output_label.config(text=result_text)
     #output()
 
+
 def Separable_Variables():
 
     # Define the variables
@@ -333,8 +340,8 @@ def Separable_Variables():
     if 'y.diff(x)*' in problem or '*y.diff(x)' in problem:
         mode = 'multiply'
     print(f'{mode} the dx/dy')
-    problem = problem.replace('dy/dx','')
-    problem = problem.replace('y.diff(x)','')
+    problem = problem.replace('y.diff(x)','dy/dx')
+    problem = problem.replace('dy/dx','0')
     problem = replacement(problem)
     problem = problem.replace('y','y(x)')
     print(f"Your rephrase problem = {problem}")
@@ -382,20 +389,87 @@ def Separable_Variables():
     output_label.config(text=result_text)
     final_label.config(text=sp.pretty(solution))
 
-def output():
-     # Convert the derivative to a plain string and format it
-    plain_string_derivative = str(dy_dx)
-    plain_string_derivative = plain_string_derivative.replace('log(e)', '')
-    plain_string_derivative = plain_string_derivative.replace('**', '^')
-    plain_string_derivative = plain_string_derivative.replace('*', '')
-    plain_string_derivative = plain_string_derivative.replace('sinx', 'sin(x)')
-    plain_string_derivative = plain_string_derivative.replace('cosx', 'cos(x)')
-    plain_string_derivative = plain_string_derivative.replace('tanx', 'tan(x')
 
-    # Display the result
-    #result_text = f"The derivative is: \n{variable_name}={plain_string_derivative}"
-    result_text = f"The derivative is: \n {sp.pretty(eqlhs)} = {sp.pretty(plain_string_derivative)}"
+def Growth_And_Decay(user_input):
+    # Remove spaces from user input
+    user_input = user_input.replace(' ', '')
+
+    # Split user input into a list of entries
+    user_data = user_input.split(',')
+
+    # Initialize variables
+    p = None
+    rp = None
+    rt = None
+    t = None
+
+    # Extract values from user input
+    for entry in user_data:
+        variable_name, value = entry.split('=')
+
+        try:
+            if variable_name == 'p':
+                p = float(value)
+            elif variable_name == 'rp':
+                rp = float(value)
+            elif variable_name == 'rt':
+                rt = float(value)
+            elif variable_name == 't':
+                t = float(value)
+            else:
+                output_label.config(text=f"\nInvalid variable name: {variable_name}\n")
+        except ValueError:
+            output_label.config(text=f"\nInvalid value for variable {variable_name}: {value}\n")
+
+    # Check if all required variables are provided
+    if p is None or rp is None or rt is None or t is None:
+        result_text = "\nThere are some of them are None...\n"
+        result_text += f"\nPopulation(p) = {p}"
+        result_text += f"\nRate percent(rp) = {rp}"
+        result_text += f"\nRate time(rt) = {rt}"
+        result_text += f"\nTime(t) = {t}\n"
+        result_text += f"\nPlease input something like this p=5000, rp=15, rt=10, t=30\n"
+        output_label.config(text=result_text)
+        return
+
+    # Prepare result text
+    result_text = "\nGiven:\n"
+    result_text += f"\nPopulation = {int(p)}"
+    result_text += f"\nRate percent = {int(rp)}"
+    result_text += f"\nRate time = {int(rt)}"
+    result_text += f"\nTime = {int(t)}\n"
+
+    # Define the differential equation
+    def dPdt(P, t):
+        return k * P
+
+    # Solve the differential equation using separation of variables
+    def solve_ode(P0, k, t):
+        return P0 * np.exp(k * t)
+
+    # Calculate population
+    P0 = p
+    k = np.log(1 + (rp / 100)) / rt
+    result_text += f"\nk = log(1+({int(rp)}/100))/{int(rt)}"
+    result_text += f"\nk = {k:.6f}\n"
+
+    P_t = solve_ode(P0, k, t)
+    result_text += f"\nP_t = {int(P0)}*e^({k:.6f}*{int(t)})"
+    result_text += f"\nP_t = {P_t:.2f}\n"
+
+    # Calculate rate of population growth
+    growth_rate = dPdt(P_t, t)
+    result_text += f"\nGrowth rate = {k:.6f}*{int(P_t)}"
+    result_text += f"\nGrowth rate = {growth_rate:.2f}\n"
+
+    # Update result text with calculated values
+    result_text += f"\nPopulation after {int(t)} years: {int(math.ceil(P_t))}"
+    result_text += f"\nRate of population growth at t = {int(t)}: {int(math.ceil(growth_rate))}"
+
+    # Display result text
     output_label.config(text=result_text)
+    final_label.config(text=f"{int(math.ceil(P_t))} population\n{int(math.ceil(growth_rate))} population/yr")
+
 
 def is_valid_sympy_expression(expression_str):
     expression_str = expression_str.replace('y\'','dy/dx')
@@ -406,6 +480,7 @@ def is_valid_sympy_expression(expression_str):
         return True
     except SympifyError:
         return False
+    
 
 #FRONT END, diri mo mag design2
 def main():
@@ -428,7 +503,7 @@ def main():
     # Create a ComboBox
     style = ttk.Style()
     style.configure('TCombobox', relief='solid', highlightbackground='black', highlightcolor='black', highlightthickness=1, justify='center')
-    combo = ttk.Combobox(root, values=('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Option 4'), style='TCombobox')
+    combo = ttk.Combobox(root, values=('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Growth and Decay'), style='TCombobox')
     combo.set('Derivative')
      
     # Set items for the ComboBox
@@ -461,7 +536,7 @@ def main():
         user_function = entry.get()
         elimination = entryEliminate.get()
         if user_function:
-            if '=' in user_function:
+            if selected_item != "Growth and Decay" and '=' in user_function:
                 if is_valid_sympy_expression(user_function):
                     if selected_item == "Derivative":
                         Derivatives()
@@ -482,6 +557,8 @@ def main():
                     result_text += f"\ntan(x) * dy/dx - y = 0\n"
                     result_text += f"\nMake sure that there's multiplication (*) between terms.\n"
                     output_label.config(text=result_text)
+            elif selected_item == "Growth and Decay":
+                Growth_And_Decay(user_function)
             else:
                 result_text = f"\nThere's no = sign.\n"
                 output_label.config(text=result_text)
