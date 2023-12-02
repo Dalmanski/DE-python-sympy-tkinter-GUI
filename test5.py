@@ -25,7 +25,7 @@ y = Function('y')(x)
 #equation = Eq(eqlhs, eqrhs)
 
 #equation = Eq(y.diff(x) - y**2 * exp(-2*x), 0)
-equation = Eq(x*(x+1)*y.diff(x)-y-1,0)
+equation = Eq((1*x)*y.diff(x)-x*y,x+x**2)
 #equation = Eq(tan(x) * y.diff(x) - y, 0)
 #equation = Eq(y.diff(x) - 3*x**2*y, 0)
 print(equation)

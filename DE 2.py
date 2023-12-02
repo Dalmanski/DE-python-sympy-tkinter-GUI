@@ -8,6 +8,7 @@ import numpy as np
 from tkinter import ttk
 from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, Derivative, SympifyError
 from PIL import Image, ImageTk
+from scipy.optimize import fsolve
 
 howManyDerive = 0
 x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y\' y\'\'") 
@@ -327,11 +328,6 @@ def Separable_Variables():
     y = Function('y')(x)   
     
     mode = 'add'
-    #problem = "y.diff(x) - y**2 * exp(-2*x) = 0"
-    #problem = "tan(x)*y.diff(x)-y=0"
-    #problem = "y.diff(x)-3*x**2*y=0"
-    #problem = "dy/dx-3*x**2*y=0"
-    #if "*dy/dx" in problem:
     problem = entry.get()
     print(f"Your problem = {problem}")
     problem = problem.replace(' ','')
@@ -341,7 +337,7 @@ def Separable_Variables():
         mode = 'multiply'
     print(f'{mode} the dx/dy')
     problem = problem.replace('y.diff(x)','dy/dx')
-    problem = problem.replace('dy/dx','0')
+    problem = problem.replace('dy/dx','')
     problem = replacement(problem)
     problem = problem.replace('y','y(x)')
     print(f"Your rephrase problem = {problem}")
@@ -356,9 +352,6 @@ def Separable_Variables():
     # Define the right-hand side separately
     eqrhs = sympify(eqrhs.strip())
 
-    #if "*dy/dx" in problem:
-        #equation = Eq(eqlhs, eqrhs)
-    #else:
     if mode == 'multiply':
         equation = Eq(Derivative(y, x) * eqlhs, eqrhs)
         str_eqlhs = str(equation.lhs)
@@ -424,20 +417,20 @@ def Growth_And_Decay(user_input):
     # Check if all required variables are provided
     if p is None or rp is None or rt is None or t is None:
         result_text = "\nThere are some of them are None...\n"
-        result_text += f"\nPopulation(p) = {p}"
-        result_text += f"\nRate percent(rp) = {rp}"
-        result_text += f"\nRate time(rt) = {rt}"
-        result_text += f"\nTime(t) = {t}\n"
+        result_text += f"\nPopulation (p) = {p}"
+        result_text += f"\nRate percent (rp) = {rp}"
+        result_text += f"\nRate time (rt) = {rt}"
+        result_text += f"\nTime (t) = {t}\n"
         result_text += f"\nPlease input something like this p=5000, rp=15, rt=10, t=30\n"
         output_label.config(text=result_text)
         return
 
     # Prepare result text
-    result_text = "\nGiven:\n"
-    result_text += f"\nPopulation = {int(p)}"
-    result_text += f"\nRate percent = {int(rp)}"
-    result_text += f"\nRate time = {int(rt)}"
-    result_text += f"\nTime = {int(t)}\n"
+    result_text = "\nGiven:"
+    result_text += f"\nPopulation (p) = {int(p)}"
+    result_text += f"\nRate percent (rp) = {int(rp)}"
+    result_text += f"\nRate time (rt) = {int(rt)}"
+    result_text += f"\nTime (t) = {int(t)}\n"
 
     # Define the differential equation
     def dPdt(P, t):
@@ -469,6 +462,132 @@ def Growth_And_Decay(user_input):
     # Display result text
     output_label.config(text=result_text)
     final_label.config(text=f"{int(math.ceil(P_t))} population\n{int(math.ceil(growth_rate))} population/yr")
+
+
+def Newtons_Law_of_Cooling_Heating(user_input):
+    # Remove spaces from user input
+    user_input = user_input.replace(' ', '')
+
+    # Split user input into a list of entries
+    user_data = user_input.split(',')
+
+    # Initialize variables
+    T1 = None
+    T2 = None
+    T3 = None
+    Tm = None
+    t1 = None
+    t2 = None
+    
+    # Extract values from user input
+    find = None
+    for entry in user_data:
+        variable_name, value = entry.split('=')
+
+        try:
+            if variable_name == 'T1':
+                T1 = value
+            elif variable_name == 'Tm':
+                Tm = value
+            elif variable_name == 'T2':
+                T2 = value
+            elif variable_name == 't1':
+                t1 = value
+            elif variable_name == 't2':
+                t2 = value
+            elif variable_name == 'T3':
+                T3 = value
+            else:
+                output_label.config(text=f"\nInvalid variable name: {variable_name}\n")
+                return
+        except ValueError:
+            output_label.config(text=f"\nInvalid value for variable {variable_name}: {value}\n")
+            return
+        
+    if T1 == '?':
+        output_label.config(text="\nSorry, we didn't have a formula on finding T1\n")
+    elif Tm == '?':
+        output_label.config(text="\nSorry, we didn't have a formula on finding Tm\n")
+    elif T2 == '?':
+        output_label.config(text="\nSorry, we didn't have a formula on finding T2\n")
+    elif t1 == '?':
+        output_label.config(text="\nSorry, we didn't have a formula on finding t1\n")
+    elif t2 == '?':
+        find = 't2'
+    elif T3 == '?':
+        find = 'T3'
+    else:
+        result_text = "\nWhat should I find in? T1? Tm? T2? t1? t2? T3?"
+        result_text += "\nIf you want to find t1 just input \"t1=?\"\n"
+        output_label.config(text=result_text)
+        return
+
+    # Check if all required variables are provided
+    if T1 is None or Tm is None or T2 is None or t1 is None or t2 is None:
+        result_text = "\nThere are some of them are None...\n"
+        result_text += f"\nInitial Temperature (T1) = {T1}"
+        result_text += f"\nRoom Temperature (Tm) = {Tm}"
+        result_text += f"\nAfter Temperature (T2) = {T2}"
+        result_text += f"\nMinute later (t1) = {t1}"
+        result_text += f"\nTime after (t2) = {t2}\n"
+        result_text += f"\nPlease input something like this T1=18, Tm=70, T2=31, t1=1, t2=5, t3=?\n"
+        output_label.config(text=result_text)
+        return
+    
+    T1 = float(T1)
+    Tm = float(Tm)
+    T2 = float(T2)
+    t1 = float(t1)
+    if t2 != '?':
+        t2 = float(t2)
+    if T3 != '?':
+        T3 = float(T3)
+
+    # Prepare result text
+    result_text = "\nGiven:"
+    result_text += f"\nInitial Temperature (T1) = {T1}"
+    result_text += f"\nRoom Temperature (Tm) = {Tm}"
+    result_text += f"\nAfter Temperature (T2) = {T2}"
+    result_text += f"\nMinute later (t1) = {t1}"
+    result_text += f"\nTime after (t2) = {t2}"
+    result_text += f"\nTemperature after t={t2} (T3) = {T3}\n"
+
+
+    def temperature_reading(initial_temperature, room_temperature, t, rate_constant):
+        # Calculate the temperature reading at time t
+        temperature = room_temperature + (initial_temperature - room_temperature) * np.exp(-rate_constant * t)   
+        return temperature
+
+    # Calculate the rate constant
+    # Define the constants
+    equation = lambda rate_constant: Tm + (T1 - Tm) * np.exp(-rate_constant * t1)
+    # Solve for the rate constant using the temperature_after_1min value
+    rate_constant = fsolve(lambda x: equation(x) - T2, 0.2)[0]
+    result_text += f"\n{int(equation(rate_constant))} = {int(Tm)} + {int(Tm-T1)}e^k({int(t1)})"
+    result_text += f"\nk = {rate_constant}"
+
+    if find == 'T3':
+        # Calculate the temperature reading after 5 minutes
+        t2 = t2  # Time in minutes
+        temperature_after_t2 = temperature_reading(T1, Tm, t2, rate_constant)
+        result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
+        result_text += f"\nTemperature reading after {int(t2)} minutes: {temperature_after_t2:.2f}\n"
+        final_label.config(text=f"Temperature(T3) = {temperature_after_t2:.2f}")
+    elif find == 't2':
+        def find_time_for_temperature(target_temperature, rate_constant):
+            # Define the equation for temperature at time t
+            equation = lambda t: temperature_reading(T1, Tm, t, rate_constant) - target_temperature
+            # Solve for time using fsolve
+            time = fsolve(equation, 0.2)[0]
+            return time
+        # Find the time for a target temperature
+        target_temperature = T3
+        time_for_target_temperature = find_time_for_temperature(target_temperature, rate_constant)
+        result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
+        result_text += f"\nTime for target temperature ({target_temperature}°F): {math.ceil(time_for_target_temperature)} minutes\n"
+        final_label.config(text=f"Time(t2) = {math.ceil(time_for_target_temperature)} minutes")
+    
+    output_label.config(text=result_text)
 
 
 def is_valid_sympy_expression(expression_str):
@@ -503,11 +622,12 @@ def main():
     # Create a ComboBox
     style = ttk.Style()
     style.configure('TCombobox', relief='solid', highlightbackground='black', highlightcolor='black', highlightthickness=1, justify='center')
-    combo = ttk.Combobox(root, values=('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Growth and Decay'), style='TCombobox')
+    #combo = ttk.Combobox(root, values=('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Growth and Decay', 'Newton\'s Law of Cooling/Heating'), style='TCombobox')
+    combo = ttk.Combobox(root, style='TCombobox')
     combo.set('Derivative')
      
     # Set items for the ComboBox
-    #combo['values'] = ('Derivative', 'Abritary Constant', 'Option 3', 'Option 4')
+    combo['values'] = ('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Growth and Decay', 'Newton\'s Law of Cooling/Heating')
 
     # Set the default value (optional)
     #combo.set('Derivative')
@@ -536,7 +656,7 @@ def main():
         user_function = entry.get()
         elimination = entryEliminate.get()
         if user_function:
-            if selected_item != "Growth and Decay" and '=' in user_function:
+            if selected_item != "Growth and Decay" and selected_item != "Newton\'s Law of Cooling/Heating" and '=' in user_function:
                 if is_valid_sympy_expression(user_function):
                     if selected_item == "Derivative":
                         Derivatives()
@@ -559,6 +679,8 @@ def main():
                     output_label.config(text=result_text)
             elif selected_item == "Growth and Decay":
                 Growth_And_Decay(user_function)
+            elif selected_item == "Newton\'s Law of Cooling/Heating":
+                Newtons_Law_of_Cooling_Heating(user_function)
             else:
                 result_text = f"\nThere's no = sign.\n"
                 output_label.config(text=result_text)

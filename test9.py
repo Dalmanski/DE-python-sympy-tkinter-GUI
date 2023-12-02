@@ -20,19 +20,21 @@ def temperature_reading(t, rate_constant):
 
     return temperature
 
+
 # Calculate the rate constant
 rate_constant = calculate_rate_constant(18, 70, 31, 1)
 print("Rate constant:", rate_constant)
 
-# Calculate the temperature reading after 5 minutes
-t = 5  # Time in minutes
-temperature_after_5min = temperature_reading(t, rate_constant)
-print("Temperature reading after 5 minutes:", temperature_after_5min, "°F")
+def find_time_for_temperature(target_temperature, rate_constant):
+    # Define the equation for temperature at time t
+    equation = lambda t: temperature_reading(t, rate_constant) - target_temperature
 
+    # Solve for time using fsolve
+    time = fsolve(equation, 0.2)[0]
 
+    return time
 
-
-
-
-
-
+# Find the time for a target temperature
+target_temperature = 57.66
+time_for_target_temperature = find_time_for_temperature(target_temperature, rate_constant)
+print(f"Time for target temperature ({target_temperature}°F): {time_for_target_temperature} minutes")
