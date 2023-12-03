@@ -6,12 +6,12 @@ import math
 import tkinter.font as tkFont
 import numpy as np
 from tkinter import ttk
-from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, Derivative, SympifyError
+from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, asin, acos, atan, Derivative, SympifyError
 from PIL import Image, ImageTk
 from scipy.optimize import fsolve
 
 howManyDerive = 0
-x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y\' y\'\'") 
+x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan asin acos atan e y\' y\'\'") 
 
 
 def find_variable(expr):
@@ -57,7 +57,7 @@ def derive(problem):
     global equation1, equation2
     global howManyDerive
     # Define the variable
-    global x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 
+    global x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2
 
     # Define replacements
     if howManyDerive == 0:   
@@ -94,10 +94,9 @@ def Derivatives():
     # Retrieve user input from the entry widget
     user_function = entry.get()
     derive(user_function)
-    plain_string_derivative = str(dy_dx)
     # Display the result
-    result_text = f"The derivative is: \n {sp.pretty(eqlhs)} = {sp.pretty(plain_string_derivative)}"
-    final_label.insert(tk.END, f"{sp.pretty(eqlhs)} = {sp.pretty(plain_string_derivative)}")
+    result_text = f"\nThe derivative is: \n{sp.pretty(eqlhs)} = {sp.pretty(dy_dx)}"
+    final_label.insert(tk.END, f"{sp.pretty(eqlhs)} = {sp.pretty(dy_dx)}")
     return result_text
 
 
@@ -108,7 +107,7 @@ def Arbitrary_Constant():
     global howManyDerive
     howManyDerive = 0
     # Define the variable
-    global x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2    
+    global x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2
     elimination = entryEliminate.get()
     # Split by spaces
     split_elimination = elimination.split()
@@ -272,7 +271,7 @@ def Arbitrary_Constant():
 
 def Separable_Variables():
     # Define the variables
-    x, y, k, t, a, c, C_1, C_2, sin, cos, tan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan e y_prime y_prime2") 
+    x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan asin acos atan e y\' y\'\'") 
     y = Function('y')(x)   
     mode = 'add'
     problem = entry.get()
@@ -286,7 +285,13 @@ def Separable_Variables():
 
     print(f'{mode} the dx/dy')
     problem = problem.replace('y.diff(x)','dy/dx')
-    problem = problem.replace('dy/dx','')
+    eqlhs, eqrhs = problem.split('=')
+
+    if eqlhs == "dy/dx" or eqrhs == "dy/dx":
+        problem = problem.replace('dy/dx','0')
+    else:
+        problem = problem.replace('dy/dx','')
+
     problem = replacement(problem)
     problem = problem.replace('y','y(x)')
     print(f"Your rephrase problem = {problem}")
@@ -357,7 +362,8 @@ def Growth_And_Decay(user_input):
             elif variable_name == 'p2':
                 p2 = value
             else:
-                result_text = f"|Invalid variable name: {variable_name}"
+                result_text = f"|Invalid variable name: {variable_name}|"
+                result_text += "|Recommended variable: p1, rp, rt, t, p2"
                 return result_text
         except ValueError:
             result_text = f"|Invalid value for variable {variable_name}: {value}"
@@ -477,6 +483,7 @@ def Newtons_Law_of_Cooling_Heating(user_input):
                 T3 = value
             else:
                 result_text = f"|Invalid variable name: {variable_name}"
+                result_text += "|Recommended variable: T1, Tm, T2, T3, t1, t2 "
                 return result_text
         except ValueError:
             result_text = f"|Invalid value for variable {variable_name}: {value}"
@@ -531,7 +538,7 @@ def Newtons_Law_of_Cooling_Heating(user_input):
     result_text += f"|After Temperature (T2) = {T2}"
     result_text += f"|Minute later (t1) = {t1}"
     result_text += f"|Time after (t2) = {t2}"
-    result_text += f"|Temperature after t={t2} (T3) = {T3}|"
+    result_text += f"|Temperature after t = {t2} (T3) = {T3}|"
 
 
     def temperature_reading(initial_temperature, room_temperature, t, rate_constant):
@@ -552,8 +559,8 @@ def Newtons_Law_of_Cooling_Heating(user_input):
         t2 = t2  # Time in minutes
         temperature_after_t2 = temperature_reading(T1, Tm, t2, rate_constant)
         result_text += f"|{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))|"
-        result_text += f"|Temperature reading after {int(t2)} minutes: {temperature_after_t2:.2f}|"
-        final_label.insert(tk.END, f"Temperature(T3) = {temperature_after_t2:.2f}")
+        result_text += f"|Temperature reading after t = {int(t2)}: {temperature_after_t2:.2f}°|"
+        final_label.insert(tk.END, f"Temperature(T3) = {temperature_after_t2:.2f}°")
     elif find == 't2':
         def find_time_for_temperature(target_temperature, rate_constant):
             # Define the equation for temperature at time t
@@ -570,17 +577,6 @@ def Newtons_Law_of_Cooling_Heating(user_input):
     
     #output_label.config(text=result_text)
     return result_text
-
-
-def is_valid_sympy_expression(expression_str):
-    expression_str = expression_str.replace('y\'','dy/dx')
-    eqlhs, eqrhs = expression_str.split('=')
-    try:
-        sympify(eqlhs)
-        sympify(eqrhs)
-        return True
-    except SympifyError:
-        return False
   
 
 #FRONT END, diri mo mag design2
@@ -606,14 +602,9 @@ def main():
     style.configure('TCombobox', relief='solid', highlightbackground='black', highlightcolor='black', highlightthickness=1, justify='center')
     #combo = ttk.Combobox(root, values=('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Growth and Decay', 'Newton\'s Law of Cooling/Heating'), style='TCombobox')
     combo = ttk.Combobox(root, style='TCombobox')
-    combo.set('Newton\'s Law of Cooling/Heating')
-     
+    combo.set('Newton\'s Law of Cooling/Heating')   
     # Set items for the ComboBox
     combo['values'] = ('Derivative', 'Arbitrary Constant', 'Separable Variables', 'Growth and Decay', 'Newton\'s Law of Cooling/Heating')
-
-    # Set the default value (optional)
-    #combo.set('Derivative')
-    combo.set('Derivative')
     selected_item = combo.get()
 
     global dy_dx, eqlhs
@@ -622,16 +613,56 @@ def main():
     combo.place(relx=0.5, rely=0.5, anchor='center', y=-150)  # Set the position to (10, 10)
     combo.configure(width=50)  # Set the width to 100
 
-    # Function to handle the selection
-
     def on_select(event):
-        global topic
         topic = combo.get()
-        if topic == "Arbitrary Constant":
+        listbox.config(state=tk.NORMAL)
+        clear_listbox(listbox)
+        clear_listbox(final_label)
+
+        if topic == "Derivative":
+            result_text = "\nThis is Derivative.\n"
+            result_text += "\nHere are the examples:"
+            result_text += "\ny=a*x^2+b*x+c"
+            result_text += "\ny=6*x^3-9*x+4"
+            insert_multiline_text(listbox, result_text)
+        elif topic == f"Arbitrary Constant":
             entryEliminate.grid(row=1, column=0, padx=300, pady=150)
-        else:
+            result_text = "\nThis is Arbitrary Constant. Make sure you input"
+            result_text += "\non the input of elimination.\n"
+            result_text += "\nExample:"
+            result_text += "\ny=C_1*e^(2*x)+C_2*e^(-3*x)"
+            result_text += "\nOn the 2nd input (Eliminate)"
+            result_text += "\nC_1 C_2"
+            insert_multiline_text(listbox, result_text)
+        elif topic == "Separable Variables":
+            result_text = "\nThis is Separable Variables.\n"
+            result_text += "\nExample:"
+            result_text += "\ntan(x) * dy/dx - y = 0"
+            result_text += "\ndy/dx - y**2 * exp(-2*x) = 0"
+            result_text += "\ndy/dx - 3*x^2*y = 0"
+            result_text += "\ny'=2*x*y+3*y-4*x-6"
+            result_text += "\ndy/dx = f(x)/g(y)"
+            insert_multiline_text(listbox, result_text)
+        elif topic == "Growth and Decay":
+            result_text = "\nThis is Growth and Decay.\n"
+            result_text += "\nInput example:"
+            result_text += "\np1=5000, rp=15, rt=10, t=30, p2=?"
+            insert_multiline_text(listbox, result_text)
+        elif topic == "Newton\'s Law of Cooling/Heating":
+            result_text = "\nThis is Newton\'s Law of Cooling/Heating\n"
+            result_text += "\nInput example:"
+            result_text += "\nT1=18, Tm=70, T2=31, t1=1, t2=5, T3=?"
+            result_text += "\nT1=20, T2=22, T3=90, t1=1, t2=?, Tm=100"
+            result_text += "\nT1=20, T2=22, T3=98, t1=1, t2=?, Tm=100"
+            insert_multiline_text(listbox, result_text)
+
+        if topic != "Arbitrary Constant":
             entryEliminate.grid_forget()
         #print(f"Selected option: {topic}")
+        listbox.config(state=tk.DISABLED)
+    
+    # Bind the function to the <<ComboboxSelected>> event
+    combo.bind("<<ComboboxSelected>>", on_select)
 
     def insert_multiline_text(text_widget, text):
         if '|' in text:
@@ -643,6 +674,19 @@ def main():
 
     def clear_listbox(listbox):
         listbox.delete(1.0, tk.END)
+
+    def is_valid_sympy_expression(expression_str):
+        if not ',' in expression_str:
+            expression_str = expression_str.replace('y\'','dy/dx')
+            eqlhs, eqrhs = expression_str.split('=')
+            try:
+                sympify(eqlhs)
+                sympify(eqrhs)
+                return True
+            except SympifyError:
+                return False
+        else:
+            return False
 
     def button_clicked():
         selected_item = combo.get()
@@ -663,24 +707,31 @@ def main():
                             result_text = Arbitrary_Constant()
                             insert_multiline_text(listbox, result_text)
                         else:
-                            result_text = f"\nYou didn't input any elimination.\n"
-                            result_text += f"\nFor example, input k or any variables\n"
-                            result_text += f"\nIf there's 2 elimination, just type \"C_1 C_2\" or any 2 variables\n"
+                            result_text = "\nYou didn't input any elimination.\n"
+                            result_text += "\nFor example, input k or any variables\n"
+                            result_text += "\nIf there's 2 elimination, just type \"C_1 C_2\" or any 2 variables\n"
                             insert_multiline_text(listbox, result_text)
                     elif selected_item == "Separable Variables":
                         result_text = Separable_Variables()
                         insert_multiline_text(listbox, result_text)
-                else:
-                    result_text = f"\nThis is not a correct equation.\n"
-                    result_text += f"\nThe correct way to enter an equation is like this:"
-                    result_text += f"\ny=C_1*exp(2*x)+C_2*exp(-3*x)"
-                    result_text += f"\ntan(x) * dy/dx - y = 0\n"
-                    result_text += f"\nMake sure that there's multiplication (*) between terms.\n"
+                    else:
+                        result_text = "\nInvalid...\n"
+                        insert_multiline_text(listbox, result_text)
+                elif ',' in user_function:
+                    result_text = "\nThis topic doesn't require comma(,)\n"
+                    result_text += "\nSwitch the topic to growth and decay or newtons law of cooling/heating."
                     insert_multiline_text(listbox, result_text)
-            elif selected_item == "Growth and Decay":
+                else:
+                    result_text = "\nThis is not a correct equation.\n"
+                    result_text += "\nThe correct way to enter an equation is like this:"
+                    result_text += "\ny=C_1*exp(2*x)+C_2*exp(-3*x)"
+                    result_text += "\ntan(x) * dy/dx - y = 0\n"
+                    result_text += "\nMake sure that there's multiplication (*) between terms.\n"
+                    insert_multiline_text(listbox, result_text)
+            elif selected_item == "Growth and Decay" and '=' in user_function:
                 result_text = Growth_And_Decay(user_function)
                 insert_multiline_text(listbox, result_text)
-            elif selected_item == "Newton\'s Law of Cooling/Heating":
+            elif selected_item == "Newton\'s Law of Cooling/Heating" and '=' in user_function:
                 result_text = Newtons_Law_of_Cooling_Heating(user_function)
                 insert_multiline_text(listbox, result_text)
             else:
@@ -694,8 +745,6 @@ def main():
         listbox.config(state=tk.DISABLED)
         final_label.config(state=tk.DISABLED)
 
-    # Bind the function to the <<ComboboxSelected>> event
-    combo.bind("<<ComboboxSelected>>", on_select)
 
     # Create a custom font
     custom_font = ('Arial', 32, 'bold italic')
@@ -735,10 +784,14 @@ def main():
     listbox = tk.Text(root, bg="white", wrap=tk.WORD, width=50, height=11)
     # Use place to set the position
     listbox.place(relx=0.5, rely=0.5, anchor='center', y=105)
+
+    result_text = "\nWelcome to Differential Equation.\n"
+    result_text += "\nPick a topic."
+    insert_multiline_text(listbox, result_text)
+
     # Disable text editing
     listbox.config(state=tk.DISABLED)
     
-
     # Create a label to display the final answer
     global final_label
     final_label = tk.Text(root, relief='flat', highlightthickness=2, height=2)
