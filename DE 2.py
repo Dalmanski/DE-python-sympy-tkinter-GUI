@@ -342,10 +342,13 @@ def Growth_And_Decay(user_input):
     p1 = None
     rp = None
     rt = None
-    t = None
+    t1 = None
+    t2 = None
     p2 = None
+    p3 = None
 
     find = None
+    half_life = False
     # Extract values from user input
     for entry in user_data:
         variable_name, value = entry.split('=')
@@ -357,13 +360,17 @@ def Growth_And_Decay(user_input):
                 rp = value
             elif variable_name == 'rt':
                 rt = value
-            elif variable_name == 't':
-                t = value
+            elif variable_name == 't1':
+                t1 = value
+            elif variable_name == 't2':
+                t2 = value
             elif variable_name == 'p2':
                 p2 = value
+            elif variable_name == 'p3':
+                p3 = value
             else:
                 result_text = f"|Invalid variable name: {variable_name}|"
-                result_text += "|Recommended variable: p1, rp, rt, t, p2"
+                result_text += "|Recommended variable: p1, rp, rt, t1, t2, p2, p3"
                 return result_text
         except ValueError:
             result_text = f"|Invalid value for variable {variable_name}: {value}"
@@ -378,34 +385,43 @@ def Growth_And_Decay(user_input):
     elif rt == '?':
         result_text = "|Sorry, we didn't have a formula on finding rt"
         return result_text
-    elif t == '?':
-        result_text = "|Sorry, we didn't have a formula on finding t"
+    elif t2 == '?':
+        result_text = "|Sorry, we didn't have a formula on finding t2"
         return result_text
     elif p2 == '?':
-        find = 'p2'
-    else:
-        result_text = "|What should I find in? p1? rp? rt? t? p2?"
-        result_text += "|If you want to find p2 just input \"p2=?\"|"
+        result_text = "|Sorry, we didn't have a formula on finding t"
         return result_text
+    elif p3 == '?':
+        find = 'p3'
+    else:
+        result_text = "|What should I find in? p1? rp? rt? t1? t2? p2? p3?"
+        result_text += "|If you want to find p3 just input \"p3=?\"|"
+        return result_text
+    
+    if t1 == '?':
+        half_life = True
  
     # Check if all required variables are provided
-    if p1 is None or rp is None or rt is None or t is None or p2 is None:
+    if p1 is None or rp is None or rt is None or t is None or p2 is None or p3 is None:
         result_text = "|There are some of them are missing...|"
         result_text += f"|Population (p1) = {p1}"
         result_text += f"|Rate percent (rp) = {rp}"
         result_text += f"|Rate time (rt) = {rt}"
-        result_text += f"|Time (t) = {t}"
-        result_text += f"|Population at t={t} (p2) = {p2}|"
-        result_text += f"|Please input something like this p1=5000, rp=15, rt=10, t=30n p2=?|"
+        result_text += f"|Time (t2) = {t2}"
+        result_text += f"|Population (p2) = {p2}"
+        result_text += f"|Population at t={t2} (p3) = {p3}|"
+        result_text += f"|Please input something like this p1=5000, rp=15, rt=10, t2=30, p2=?, p3=?|"
         return result_text
 
     p1 = float(p1)
     rp = float(rp)
     rt = float(rt)
-    if t != '?':
-        t = float(t)
-    if p2 != '?':
-        p2 = float(p2)
+    if t1 != '?':
+        p3 = float(t1)
+    t2 = float(t2)
+    p2 = float(p2)
+    if p3 != '?':
+        p3 = float(p3)
 
     # Prepare result text
     result_text = "|<SOLUTION>|"
@@ -413,38 +429,48 @@ def Growth_And_Decay(user_input):
     result_text += f"|Population (p1) = {p1}"
     result_text += f"|Rate percent (rp) = {rp}"
     result_text += f"|Rate time (rt) = {rt}"
-    result_text += f"|Time (t) = {t}"
-    result_text += f"|Population at t={t} (p2) = {p2}|"
-
-    # Define the differential equation
-    def dPdt(P1, t):
-        return k * P1
+    result_text += f"|Time (t1) = {t1}"
+    result_text += f"|Time (t2) = {t2}"
+    result_text += f"|Population (p2) = {p2}"
+    result_text += f"|Population at t={t2} (p3) = {p3}|"
 
     # Solve the differential equation using separation of variables
     def solve_ode(P0, k, t):
         return P0 * np.exp(k * t)
 
     # Calculate population
-    P0 = p1
-    k = np.log(1 + (rp / 100)) / rt
-    result_text += f"|k = log(1+({int(rp)}/100))/{int(rt)}"
-    result_text += f"|k = {k:.6f}|"
+    if int(rp) != 0:
+        P0 = p1
+        k = np.log(1 + (rp / 100)) / rt
+        result_text += f"|k = log(1+({int(rp)}/100))/{int(rt)}"
+        result_text += f"|k = {k:.6f}|"
+        # If there's no percent (rp) and theres p2 on finding p3
+        # Calculate the decay constant
+    else:
+        k = np.log(p2 / p1) / rt 
+        result_text += f"|k = log({int(p2)}/{int(p1)}))/{int(rt)}"
+        result_text += f"|k = {k:.6f}|"
 
-    P_t = solve_ode(P0, k, t)
-    result_text += f"|P_t = {int(P0)}*e^({k:.6f}*{int(t)})"
+    P_t = solve_ode(p1, k, t2)
+    result_text += f"|P_t = {int(p2)}*e^({k:.6f}*{int(t2)})"
     result_text += f"|P_t = {P_t:.2f}|"
 
     # Calculate rate of population growth
-    growth_rate = dPdt(P_t, t)
+    growth_rate = P_t * k
     result_text += f"|Growth rate = {k:.6f}*{int(P_t)}"
     result_text += f"|Growth rate = {growth_rate:.2f}|"
 
     # Update result text with calculated values
-    result_text += f"|Population after {int(t)} years: {int(math.ceil(P_t))}"
-    result_text += f"|Rate of population growth at t = {int(t)}: {int(math.ceil(growth_rate))}"
+    result_text += f"|Population after {int(t2)} years: {int(math.ceil(P_t))}"
+    result_text += f"|Rate of population growth at t = {int(t2)}: {int(math.ceil(growth_rate))}"
 
-    # Display result text
-    final_label.insert(tk.END, f"{int(math.ceil(P_t))} population\n{int(math.ceil(growth_rate))} population/yr")
+    if half_life == True:
+        t1 = math.log(2) / k
+        result_text += f"|Half-life: t1 = {t1:.2f}"
+        final_label.insert(tk.END, f"{int(math.ceil(P_t))} population\nhalf-life (t1) = {abs(t1):.2f} years")
+    else:
+        # Display result text
+        final_label.insert(tk.END, f"{int(math.ceil(P_t))} population\n{int(math.ceil(growth_rate))} population/yr")
     return result_text
 
 
@@ -613,6 +639,7 @@ def main():
     combo.place(relx=0.5, rely=0.5, anchor='center', y=-150)  # Set the position to (10, 10)
     combo.configure(width=50)  # Set the width to 100
 
+
     def on_select(event):
         topic = combo.get()
         listbox.config(state=tk.NORMAL)
@@ -646,7 +673,9 @@ def main():
         elif topic == "Growth and Decay":
             result_text = "\nThis is Growth and Decay.\n"
             result_text += "\nInput example:"
-            result_text += "\np1=5000, rp=15, rt=10, t=30, p2=?"
+            result_text += "\np1=5000, p2=5000, rp=15, rt=10, t1=0, t2=30, p3=?"
+            result_text += "\np1=100,  p2=96,  rp=0,  rt=100, t1=0, t2=258,  p3=?"
+            result_text += "\np1=100,  p2=96,  rp=0,  rt=100, t1=?, t2=258,  p3=?"
             insert_multiline_text(listbox, result_text)
         elif topic == "Newton\'s Law of Cooling/Heating":
             result_text = "\nThis is Newton\'s Law of Cooling/Heating\n"
@@ -658,6 +687,7 @@ def main():
 
         if topic != "Arbitrary Constant":
             entryEliminate.grid_forget()
+
         #print(f"Selected option: {topic}")
         listbox.config(state=tk.DISABLED)
     
@@ -799,6 +829,7 @@ def main():
     final_label.pack(fill='x')
     final_label.place(relx=0.5, rely=0.5, anchor='center',x=190, y=-100)
     final_label.configure(width=35)
+
 
     root.mainloop()
 
