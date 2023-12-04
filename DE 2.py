@@ -793,6 +793,8 @@ def main():
     #entry.place(relx=0.5, rely=0.5, anchor='center', y=-100)  
     #entry.configure(width=100)  
     entry.place(relx=0.5, rely=0.5, anchor='center', x=-190, y=-100)  
+    entry.config(bg="black")
+    entry.config(fg="white")
     entry.configure(width=48)  
 
      # Create an entry widget for user input arbitary constant eliminate
@@ -824,10 +826,12 @@ def main():
     
     # Create a label to display the final answer
     global final_label
-    final_label = tk.Text(root, relief='flat', highlightthickness=2, height=2)
+    final_label = tk.Text(root, relief='flat', highlightthickness=0, height=2)
     final_label.pack(side='top', fill='x')
     final_label.pack(fill='x')
     final_label.place(relx=0.5, rely=0.5, anchor='center',x=190, y=-100)
+    final_label.config(bg="black")
+    final_label.config(fg="white")
     final_label.configure(width=35)
 
 
