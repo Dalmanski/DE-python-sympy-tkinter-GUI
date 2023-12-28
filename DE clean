@@ -1,0 +1,269 @@
+import sympy as sp
+import string
+import re
+import tkinter as tk
+import math
+import tkinter.font as tkFont
+import numpy as np
+from tkinter import ttk
+from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, asin, acos, atan, Derivative, SympifyError
+from PIL import Image, ImageTk
+from scipy.optimize import fsolve
+
+howManyDerive = 0
+x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan asin acos atan e y\' y\'\'") 
+
+
+def find_variable(expr):
+    for term in expr.args:
+        if isinstance(term, sp.Mul):
+            variables = [symbol for symbol in term.free_symbols if symbol != C_1 and symbol != C_2 and symbol != k and symbol != e]
+            if variables:
+                return variables[0]
+
+
+def replacement(problem):
+    replacements = {
+        ' ': '',
+        '^': '**',
+        'c_1': 'C_1',
+        'c_2': 'C_2',
+        'e^': 'exp',
+        '{': '(',
+        '}': ')'
+    }
+        
+    for find, replace in replacements.items():
+        problem = problem.replace(find, replace)
+
+    # Read variables such as a-z and numbers -1000000 to 1000000
+    #for i in string.ascii_lowercase:
+    #    if i+'x' in problem:
+    #        problem = problem.replace(i+'x', i+'*x')
+    #    if i+'t' in problem:
+    #        problem = problem.replace(i+'t', '('+i+'*t)')
+    #        #x = sp.symbols('t')
+    #for i in range(-1000000, 1000001):
+    #    if str(i)+'x' in problem:
+    #        problem = problem.replace(str(i)+'x', str(i)+'*x')
+    #    if str(i)+'t' in problem:
+    #        problem = problem.replace(str(i)+'t', str(i)+'*t')
+    return problem
+
+
+def Separable_Variables():
+    # Define the variables
+    x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan asin acos atan e y\' y\'\'") 
+    y = Function('y')(x)   
+    mode = 'add'
+    problem = entry.get()
+    print(f"Your problem = {problem}")
+    problem = problem.replace(' ','')
+    problem = problem.replace('y\'','y.diff(x)')
+    problem = problem.replace('dy/dx','y.diff(x)')
+
+    if 'y.diff(x)*' in problem or '*y.diff(x)' in problem:
+        mode = 'multiply'
+
+    print(f'{mode} the dx/dy')
+    problem = problem.replace('y.diff(x)','dy/dx')
+    eqlhs, eqrhs = problem.split('=')
+
+    if eqlhs == "dy/dx" or eqrhs == "dy/dx":
+        problem = problem.replace('dy/dx','0')
+    else:
+        problem = problem.replace('dy/dx','')
+
+    problem = replacement(problem)
+    problem = problem.replace('y','y(x)')
+    print(f"Your rephrase problem = {problem}")
+    # Initialize variables to store left-hand side and right-hand side of equations
+    eqlhs, eqrhs = problem.split('=')
+    print(f"before eqlhs = {eqlhs}, eqrhs = {eqrhs}")
+    # Parse the user-provided equations
+    eqlhs = sympify(eqlhs.strip())     
+    # Define the right-hand side separately
+    eqrhs = sympify(eqrhs.strip())
+
+    if mode == 'multiply':
+        equation = Eq(Derivative(y, x) * eqlhs, eqrhs)
+        str_eqlhs = str(equation.lhs)
+        if 'y(x)*' in str_eqlhs:
+            str_eqlhs = str_eqlhs.replace('y(x)*','y(x)+')
+            eqlhs = sympify(str_eqlhs)
+            equation = Eq(eqlhs, eqrhs)
+    else:
+        equation = Eq(y.diff(x) + eqlhs, eqrhs)
+
+    result_text = f"|<SOLUTION>|"
+    result_text += f"|Equation :\n{sp.pretty(equation)}|"
+    print(f"eqlhs = {eqlhs}, eqrhs = {eqrhs}")
+    print("Original Equation:")
+    print(equation)
+    print(sp.pretty(equation))
+    # Solve the differential equation
+    solution = dsolve(equation)
+    result_text += f"|Final answer:\n{sp.pretty(solution)}"
+    y_solution = solution.rhs
+    # Display the solution
+    print("\nSolution:")
+    print(f"y = {y_solution}")
+    print(f"y = {sp.pretty(y_solution)}")
+    final_label.insert(tk.END, sp.pretty(solution))
+    return result_text
+
+
+#FRONT END, diri mo mag design2
+def main():
+    # diri mo himo na mura FRONT END or design
+    root = tk.Tk()
+    root.title('Differential Equation')
+    root.geometry("720x480")
+    root.resizable(False, False)
+
+   # Load the background image and resize it to fit the window
+    background_image = Image.open("design.png")
+    background_image = background_image.resize((root.winfo_reqwidth()*4, root.winfo_reqheight()*5), 3)  # 3 corresponds to ANTIALIAS
+
+    background_photo = ImageTk.PhotoImage(background_image)
+
+    # Create a label to display the background image
+    background_label = tk.Label(root, image=background_photo)
+    background_label.place(relwidth=1, relheight=1.8)
+
+    # Create a ComboBox
+    style = ttk.Style()
+    style.configure('TCombobox', relief='solid', highlightbackground='black', highlightcolor='black', highlightthickness=1, justify='center')
+    combo = ttk.Combobox(root, style='TCombobox')
+    combo.set('Separable Variables')   
+    # Set items for the ComboBox
+    combo['values'] = ('Separable Variables','')
+    selected_item = combo.get()
+
+    global dy_dx, eqlhs
+
+    combo.pack(fill='x')
+    combo.place(relx=0.5, rely=0.5, anchor='center', y=-150)  # Set the position to (10, 10)
+    combo.configure(width=50)  # Set the width to 100
+
+
+    def on_select(event):
+        topic = combo.get()
+        listbox.config(state=tk.NORMAL)
+        clear_listbox(listbox)
+        clear_listbox(final_label)
+
+        result_text = "\nThis is Separable Variables.\n"
+        result_text += "\nExample:"
+        result_text += "\ntan(x) * dy/dx - y = 0"
+        result_text += "\ndy/dx - y**2 * exp(-2*x) = 0"
+        result_text += "\ndy/dx - 3*x^2*y = 0"
+        result_text += "\ny'=2*x*y+3*y-4*x-6"
+        result_text += "\ndy/dx = f(x)/g(y)"
+        insert_multiline_text(listbox, result_text)
+        
+        #print(f"Selected option: {topic}")
+        listbox.config(state=tk.DISABLED)
+    
+    # Bind the function to the <<ComboboxSelected>> event
+    combo.bind("<<ComboboxSelected>>", on_select)
+
+    def insert_multiline_text(text_widget, text):
+        if '|' in text:
+            lines = text.split('|')
+            for line in lines:
+                text_widget.insert(tk.END, line + '\n')
+        else:
+            text_widget.insert(tk.END, text)
+
+    def clear_listbox(listbox):
+        listbox.delete(1.0, tk.END)
+
+    def is_valid_sympy_expression(expression_str):
+        if not ',' in expression_str:
+            expression_str = expression_str.replace('y\'','dy/dx')
+            eqlhs, eqrhs = expression_str.split('=')
+            try:
+                sympify(eqlhs)
+                sympify(eqrhs)
+                return True
+            except SympifyError:
+                return False
+        else:
+            return False
+
+    def button_clicked():
+        selected_item = combo.get()
+        user_function = entry.get()
+        listbox.config(state=tk.NORMAL)
+        final_label.config(state=tk.NORMAL)
+        clear_listbox(listbox)
+        clear_listbox(final_label)
+        result_text = Separable_Variables()
+        insert_multiline_text(listbox, result_text)
+        listbox.config(state=tk.DISABLED)
+        final_label.config(state=tk.DISABLED)
+
+
+    # Create a custom font
+    #custom_font = ('Arial', 32, 'bold italic')
+    #custom_font2 = tkFont.Font(family="Computer Modern", size=10)  # Set your desired font family and size
+
+    # Create a label with the specified font and text
+    #labelTitle = tk.Label(root, text="DIFFERENTIAL EQUATION", font=custom_font)
+    #labelTitle.pack(fill='x')
+    #labelTitle.place(relx=0.5, rely=0.5, anchor='center', y=-200)
+    #labelTitle.configure(width=50)
+
+    # Create an entry widget for user input
+    global entry
+    entry = tk.Entry(root, relief='flat', highlightthickness=2, justify='center')
+    entry.pack(fill='x')
+    #entry.place(relx=0.5, rely=0.5, anchor='center', y=-100)  
+    #entry.configure(width=100)  
+    entry.place(relx=0.5, rely=0.5, anchor='center', x=-190, y=-100)  
+    entry.config(bg="black")
+    entry.config(fg="white")
+    entry.configure(width=48)  
+
+
+    # Create a button to trigger the action
+    button = tk.Button(root, text="Compute", command=button_clicked, relief='solid', highlightthickness=1)
+    button.pack(fill='x')
+    button.place(relx=0.5, rely=0.5, anchor='center', y=-50)
+    button.configure(width=50)
+
+    # Define custom font
+    #center_font = ("Helvetica", 12)
+    listbox = tk.Text(root, bg="white", wrap=tk.WORD, width=55, height=11)
+    # Use place to set the position
+    listbox.place(relx=0.5, rely=0.5, anchor='center', y=105)
+
+    result_text = "\nThis is Separable Variables.\n"
+    result_text += "\nExample:"
+    result_text += "\ntan(x) * dy/dx - y = 0"
+    result_text += "\ndy/dx - y**2 * exp(-2*x) = 0"
+    result_text += "\ndy/dx - 3*x^2*y = 0"
+    result_text += "\ny'=2*x*y+3*y-4*x-6"
+    result_text += "\ndy/dx = f(x)/g(y)"
+    insert_multiline_text(listbox, result_text)
+
+    # Disable text editing
+    listbox.config(state=tk.DISABLED)
+    
+    # Create a label to display the final answer
+    global final_label
+    final_label = tk.Text(root, relief='flat', highlightthickness=0, height=2)
+    final_label.pack(side='top', fill='x')
+    final_label.pack(fill='x')
+    final_label.place(relx=0.5, rely=0.5, anchor='center',x=190, y=-100)
+    final_label.config(bg="black")
+    final_label.config(fg="white")
+    final_label.configure(width=35)
+
+
+    root.mainloop()
+
+if __name__ == '__main__':
+    main()
+

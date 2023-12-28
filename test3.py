@@ -1,19 +1,29 @@
-from sympy import symbols, Function, exp, Eq, simplify
+import sympy as sp
+from sympy import symbols, Function, Eq, dsolve, sympify, simplify_logic, exp, Derivative, θ
 
 # Define the variable
-x = symbols('x')
+#x = symbols('x')
 
 # Define y as a function of x
-y = Function('y')(x)
+#y = Function('y')(x)
 
 # Original expression
-original_expression = -y**2 / exp(2*x)
-
+# dy/dx = 
+# original_expression = Derivative(y, x) - y**2 * exp(-2*x)
+original_expression = Eq(Derivative(θ,r), r**2/θ)
+#original_expression = "y.diff(x) - y**2 * exp(-2*x)"
+original_expression = original_expression.replace("y", "y(x)")
+#original_expression = sympify(original_expression)
 # Convert to the desired form
-original_expression = original_expression.subs(exp(2*x), exp(-2*x))
+# original_expression = original_expression.subs(exp(2*x), exp(-2*x))
+
+original_expression = Eq(original_expression, 0)
+
+seperableVariable = dsolve(original_expression)
 
 # Display the result
-print(original_expression)
+print(sp.pretty(original_expression))
+print(sp.pretty(seperableVariable))
 
 
 
