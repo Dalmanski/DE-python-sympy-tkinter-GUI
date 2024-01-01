@@ -38,45 +38,6 @@ def replacement(problem):
     return problem
 
 
-def derive(problem):
-    global dy_dx
-    global eqlhs, eqrhs
-    global equation1, equation2
-    global howManyDerive
-    # Define the variable
-    global x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2
-
-    # Define replacements
-    if howManyDerive == 0:   
-        problem = replacement(problem)
-        print(f'on {howManyDerive}, you have {problem}')
-        # Initialize variables to store left-hand side and right-hand side of equations
-        eqlhs, eqrhs = problem.split('=')
-        # Parse the user-provided equations
-        eqlhs = sp.sympify(eqlhs.strip())
-        eqrhs = sp.sympify(eqrhs.strip())
-        variable = find_variable(eqrhs)
-        print(f'variable = {variable}')
-        x = sp.symbols(str(variable))
-
-    if howManyDerive == 0:
-        # Add the two equations
-        equation1 = sp.Eq(eqlhs, eqrhs)
-        # Create the symbolic expression
-        symbol_expr = sp.sympify(eqrhs)
-        print(f'left side = {eqlhs}')
-        print(f'right side = {eqrhs}')
-    elif howManyDerive == 1:
-        # Create the symbolic expression
-        symbol_expr = sp.sympify(problem.rhs)  
-        print(f'right side = {symbol_expr}')
-
-    # Calculate the derivative
-    print(f'variable = {x}')
-    dy_dx = sp.diff(symbol_expr, x)
-    print(f'dy_dx = {dy_dx}')
-
-
 def Separable_Variables():
     # Define the variables
     y = Function('y')(x)   
@@ -94,10 +55,8 @@ def Separable_Variables():
     print(f"before eqlhs = {eqlhs}, eqrhs = {eqrhs}")
     # Parse the user-provided equations
     eqlhs = sympify(eqlhs.strip())     
-    # Define the right-hand side separately
     eqrhs = sympify(eqrhs.strip())
     equation = Eq(eqlhs, eqrhs)
-
     result_text = f"\n<SOLUTION>\n"
     result_text += f"\nEquation :\n{sp.pretty(equation)}\n"
     print(f"eqlhs = {eqlhs}, eqrhs = {eqrhs}")
@@ -336,8 +295,8 @@ def main():
     global entries
 
     combo.pack(fill='x')
-    combo.place(relx=0.5, rely=0.5, anchor='center', y=-170)  # Set the position to (10, 10)
-    combo.configure(width=50)  # Set the width to 100
+    combo.place(relx=0.5, rely=0.5, anchor='center', y=-170)
+    combo.configure(width=50)
 
 
     def on_select(event):
@@ -345,6 +304,7 @@ def main():
         topic = combo.get()
         listbox.config(state=tk.NORMAL)
         entryText.config(state=tk.NORMAL)
+        final_label.config(state=tk.NORMAL)
         clear_listbox(listbox)
         clear_listbox(entryText)
         clear_listbox(final_label)
@@ -382,6 +342,7 @@ def main():
         #print(f"Selected option: {topic}")
         listbox.config(state=tk.DISABLED)
         entryText.config(state=tk.DISABLED)
+        final_label.config(state=tk.DISABLED)
     
     # Bind the function to the <<ComboboxSelected>> event
     combo.bind("<<ComboboxSelected>>", on_select)
@@ -395,6 +356,15 @@ def main():
 
     def insert_multiline_text(text_widget, text):
         lines = text.split('\n')
+        num_lines = int(final_label.index('end-1c').split('.')[0])
+        final_label.config(height=2, y=-97)
+        height_increment = 0
+        y_increment = 0
+        for i in range(num_lines):
+            if i > 1:
+                height_increment += 1
+                y_increment += 10
+                final_label.config(height=1 + height_increment, y=-100 + y_increment)
         for line in lines:
             text_widget.insert(tk.END, line + '\n')
 
@@ -529,6 +499,7 @@ def main():
     # Disable text editing
     listbox.config(state=tk.DISABLED)
     entryText.config(state=tk.DISABLED)
+    final_label.config(state=tk.DISABLED)
 
     root.mainloop()
 
