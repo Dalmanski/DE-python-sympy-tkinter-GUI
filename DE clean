@@ -42,35 +42,25 @@ def Separable_Variables():
     # Define the variables
     y = Function('y')(x)   
     problem = entries[0].get()
-    print(f"Your problem = {problem}")
     problem = problem.replace(' ','')
     problem = problem.replace('y\'','Derivative(y,x)')
     problem = problem.replace('dy/dx','Derivative(y,x)')
     eqlhs, eqrhs = problem.split('=')
     problem = replacement(problem)
     problem = problem.replace('y','y(x)')
-    print(f"Your rephrase problem = {problem}")
     # Initialize variables to store left-hand side and right-hand side of equations
     eqlhs, eqrhs = problem.split('=')
-    print(f"before eqlhs = {eqlhs}, eqrhs = {eqrhs}")
     # Parse the user-provided equations
     eqlhs = sympify(eqlhs.strip())     
     eqrhs = sympify(eqrhs.strip())
     equation = Eq(eqlhs, eqrhs)
     result_text = f"\n<SOLUTION>\n"
     result_text += f"\nEquation :\n{sp.pretty(equation)}\n"
-    print(f"eqlhs = {eqlhs}, eqrhs = {eqrhs}")
-    print("Original Equation:")
-    print(equation)
-    print(sp.pretty(equation))
     # Solve the differential equation
     solution = dsolve(equation)
     result_text += f"\nFinal answer:\n{sp.pretty(solution)}"
     y_solution = solution.rhs
     # Display the solution
-    print("\nSolution:")
-    print(f"y = {y_solution}")
-    print(f"y = {sp.pretty(y_solution)}")
     final_label.insert(tk.END, sp.pretty(solution))
     return result_text
 
