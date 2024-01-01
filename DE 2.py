@@ -312,15 +312,15 @@ def Separable_Variables():
     eqrhs = sympify(eqrhs.strip())
     equation = Eq(eqlhs, eqrhs)
 
-    result_text = f"|<SOLUTION>|"
-    result_text += f"|Equation :\n{sp.pretty(equation)}|"
+    result_text = f"\n<SOLUTION>\n"
+    result_text += f"\nEquation :\n{sp.pretty(equation)}\n"
     print(f"eqlhs = {eqlhs}, eqrhs = {eqrhs}")
     print("Original Equation:")
     print(equation)
     print(sp.pretty(equation))
     # Solve the differential equation
     solution = dsolve(equation)
-    result_text += f"|Final answer:\n{sp.pretty(solution)}"
+    result_text += f"\nFinal answer:\n{sp.pretty(solution)}"
     y_solution = solution.rhs
     # Display the solution
     print("\nSolution:")
@@ -335,25 +335,25 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     half_life = False
 
     if p1 == '?':
-        result_text = "|Sorry, we didn't have a formula on finding p1"
+        result_text = "\nSorry, we didn't have a formula on finding p1"
         return result_text
     elif rp == '?':
-        result_text = "|Sorry, we didn't have a formula on finding rp"
+        result_text = "\nSorry, we didn't have a formula on finding rp"
         return result_text
     elif rt == '?':
-        result_text = "|Sorry, we didn't have a formula on finding rt"
+        result_text = "\nSorry, we didn't have a formula on finding rt"
         return result_text
     elif t2 == '?':
-        result_text = "|Sorry, we didn't have a formula on finding t2"
+        result_text = "\nSorry, we didn't have a formula on finding t2"
         return result_text
     elif p2 == '?':
-        result_text = "|Sorry, we didn't have a formula on finding t"
+        result_text = "\nSorry, we didn't have a formula on finding t"
         return result_text
     elif p3 == '?':
         find = 'p3'
     else:
-        result_text = "|What should I find in? p1? rp? rt? t1? t2? p2? p3?"
-        result_text += "|If you want to find p3 just input \"p3=?\"|"
+        result_text = "\nWhat should I find in? p1? rp? rt? t1? t2? p2? p3?"
+        result_text += "\nIf you want to find p3 just input \"p3=?\"\n"
         return result_text
     
     if t1 == '?':
@@ -361,14 +361,14 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
  
     # Check if all required variables are provided
     if p1 is None or rp is None or rt is None or t is None or p2 is None or p3 is None:
-        result_text = "|There are some of them are missing...|"
-        result_text += f"|Population (p1) = {p1}"
-        result_text += f"|Rate percent (rp) = {rp}"
-        result_text += f"|Rate time (rt) = {rt}"
-        result_text += f"|Time (t2) = {t2}"
-        result_text += f"|Population (p2) = {p2}"
-        result_text += f"|Population at t={t2} (p3) = {p3}|"
-        result_text += f"|Please input something like this p1=5000, rp=15, rt=10, t2=30, p2=?, p3=?|"
+        result_text = "\nThere are some of them are missing...\n"
+        result_text += f"\nPopulation (p1) = {p1}"
+        result_text += f"\nRate percent (rp) = {rp}"
+        result_text += f"\nRate time (rt) = {rt}"
+        result_text += f"\nTime (t2) = {t2}"
+        result_text += f"\nPopulation (p2) = {p2}"
+        result_text += f"\nPopulation at t={t2} (p3) = {p3}\n"
+        result_text += f"\nPlease input something like this p1=5000, rp=15, rt=10, t2=30, p2=?, p3=?\n"
         return result_text
 
     p1 = float(p1)
@@ -382,15 +382,15 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
         p3 = float(p3)
 
     # Prepare result text
-    result_text = "|<SOLUTION>|"
-    result_text += "|Given:"
-    result_text += f"|Population (p1) = {p1}"
-    result_text += f"|Rate percent (rp) = {rp}"
-    result_text += f"|Rate time (rt) = {rt}"
-    result_text += f"|Time (t1) = {t1}"
-    result_text += f"|Time (t2) = {t2}"
-    result_text += f"|Population (p2) = {p2}"
-    result_text += f"|Population at t={t2} (p3) = {p3}|"
+    result_text = "\n<SOLUTION>\n"
+    result_text += "\nGiven:"
+    result_text += f"\nPopulation (p1) = {p1}"
+    result_text += f"\nRate percent (rp) = {rp}"
+    result_text += f"\nRate time (rt) = {rt}"
+    result_text += f"\nTime (t1) = {t1}"
+    result_text += f"\nTime (t2) = {t2}"
+    result_text += f"\nPopulation (p2) = {p2}"
+    result_text += f"\nPopulation at t={t2} (p3) = {p3}\n"
 
     # Solve the differential equation using separation of variables
     def solve_ode(P0, k, t):
@@ -400,31 +400,31 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     if int(rp) != 0:
         P0 = p1
         k = np.log(1 + (rp / 100)) / rt
-        result_text += f"|k = log(1+({int(rp)}/100))/{int(rt)}"
-        result_text += f"|k = {k:.6f}|"
+        result_text += f"\nk = log(1+({int(rp)}/100))/{int(rt)}"
+        result_text += f"\nk = {k:.6f}\n"
         # If there's no percent (rp) and theres p2 on finding p3
         # Calculate the decay constant
     else:
         k = np.log(p2 / p1) / rt 
-        result_text += f"|k = log({int(p2)}/{int(p1)}))/{int(rt)}"
-        result_text += f"|k = {k:.6f}|"
+        result_text += f"\nk = log({int(p2)}/{int(p1)}))/{int(rt)}"
+        result_text += f"\nk = {k:.6f}\n"
 
     P_t = solve_ode(p1, k, t2)
-    result_text += f"|P_t = {int(p2)}*e^({k:.6f}*{int(t2)})"
-    result_text += f"|P_t = {P_t:.2f}|"
+    result_text += f"\nP_t = {int(p2)}*e^({k:.6f}*{int(t2)})"
+    result_text += f"\nP_t = {P_t:.2f}\n"
 
     # Calculate rate of population growth
     growth_rate = P_t * k
-    result_text += f"|Growth rate = {k:.6f}*{int(P_t)}"
-    result_text += f"|Growth rate = {growth_rate:.2f}|"
+    result_text += f"\nGrowth rate = {k:.6f}*{int(P_t)}"
+    result_text += f"\nGrowth rate = {growth_rate:.2f}\n"
 
     # Update result text with calculated values
-    result_text += f"|Population after {int(t2)} years: {int(math.ceil(P_t))}"
-    result_text += f"|Rate of population growth at t = {int(t2)}: {int(math.ceil(growth_rate))}"
+    result_text += f"\nPopulation after {int(t2)} years: {int(math.ceil(P_t))}"
+    result_text += f"\nRate of population growth at t = {int(t2)}: {int(math.ceil(growth_rate))}"
 
     if half_life == True:
         t1 = math.log(2) / k
-        result_text += f"|Half-life: t1 = {t1:.2f}"
+        result_text += f"\nHalf-life: t1 = {t1:.2f}"
         final_label.insert(tk.END, f"{int(math.ceil(P_t))} population\nhalf-life (t1) = {abs(t1):.2f} years")
     else:
         # Display result text
@@ -432,39 +432,38 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     return result_text
 
 
-
 def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):  
     find = None      
     if T1 == '?':
-        result_text = "|Sorry, we didn't have a formula on finding T1"
+        result_text = "\nSorry, we didn't have a formula on finding T1"
         return result_text
     elif Tm == '?':
-        result_text = "|Sorry, we didn't have a formula on finding Tm"
+        result_text = "\nSorry, we didn't have a formula on finding Tm"
         return result_text
     elif T2 == '?':
-        result_text = "|Sorry, we didn't have a formula on finding T2"
+        result_text = "\nSorry, we didn't have a formula on finding T2"
         return result_text
     elif t1 == '?':
-        result_text = "|Sorry, we didn't have a formula on finding t1"
+        result_text = "\nSorry, we didn't have a formula on finding t1"
         return result_text
     elif t2 == '?':
         find = 't2'
     elif T3 == '?':
         find = 'T3'
     else:
-        result_text = "|What should I find in? T1? Tm? T2? t1? t2? T3?"
-        result_text += "|If you want to find t1 just input \"t1=?\""
+        result_text = "\nWhat should I find in? T1? Tm? T2? t1? t2? T3?"
+        result_text += "\nIf you want to find t1 just input \"t1=?\""
         return result_text
 
     # Check if all required variables are provided
     if T1 is None or Tm is None or T2 is None or t1 is None or t2 is None or T3 is None:
-        result_text = "|There are some of them are missing...|"
-        result_text += f"|Initial Temperature (T1) = {T1}"
-        result_text += f"|Room Temperature (Tm) = {Tm}"
-        result_text += f"|After Temperature (T2) = {T2}"
-        result_text += f"|Minute later (t1) = {t1}"
-        result_text += f"|Time after (t2) = {t2}|"
-        result_text += f"|Please input like this T1=18, Tm=70, T2=31, t1=1, t2=5, t3=?"
+        result_text = "\nThere are some of them are missing...\n"
+        result_text += f"\nInitial Temperature (T1) = {T1}"
+        result_text += f"\nRoom Temperature (Tm) = {Tm}"
+        result_text += f"\nAfter Temperature (T2) = {T2}"
+        result_text += f"\nMinute later (t1) = {t1}"
+        result_text += f"\nTime after (t2) = {t2}\n"
+        result_text += f"\nPlease input like this T1=18, Tm=70, T2=31, t1=1, t2=5, t3=?"
         return result_text
     
     T1 = float(T1) 
@@ -477,14 +476,14 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
         T3 = float(T3)
 
     # Prepare result text
-    result_text = "|<SOLUTION>|"
-    result_text += "|Given:"
-    result_text += f"|Initial Temperature (T1) = {T1}"
-    result_text += f"|Room Temperature (Tm) = {Tm}"
-    result_text += f"|After Temperature (T2) = {T2}"
-    result_text += f"|Minute later (t1) = {t1}"
-    result_text += f"|Time after (t2) = {t2}"
-    result_text += f"|Temperature after t = {t2} (T3) = {T3}|"
+    result_text = "\n<SOLUTION>\n"
+    result_text += "\nGiven:"
+    result_text += f"\nInitial Temperature (T1) = {T1}"
+    result_text += f"\nRoom Temperature (Tm) = {Tm}"
+    result_text += f"\nAfter Temperature (T2) = {T2}"
+    result_text += f"\nMinute later (t1) = {t1}"
+    result_text += f"\nTime after (t2) = {t2}"
+    result_text += f"\nTemperature after t = {t2} (T3) = {T3}\n"
 
 
     def temperature_reading(initial_temperature, room_temperature, t, rate_constant):
@@ -497,15 +496,15 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
     equation = lambda rate_constant: Tm + (T1 - Tm) * np.exp(-rate_constant * t1)
     # Solve for the rate constant using the temperature_after_min value
     rate_constant = fsolve(lambda x: equation(x) - T2, 0.2)[0]
-    result_text += f"|{int(equation(rate_constant))} = {int(Tm)} + {int(Tm-T1)}e^k({int(t1)})"
-    result_text += f"|k = {rate_constant}"
+    result_text += f"\n{int(equation(rate_constant))} = {int(Tm)} + {int(Tm-T1)}e^k({int(t1)})"
+    result_text += f"\nk = {rate_constant}"
 
     if find == 'T3':
         # Calculate the temperature reading after minutes
         t2 = t2  # Time in minutes
         temperature_after_t2 = temperature_reading(T1, Tm, t2, rate_constant)
-        result_text += f"|{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))|"
-        result_text += f"|Temperature reading after t = {int(t2)}: {temperature_after_t2:.2f}°|"
+        result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
+        result_text += f"\nTemperature reading after t = {int(t2)}: {temperature_after_t2:.2f}°\n"
         final_label.insert(tk.END, f"Temperature(T3) = {temperature_after_t2:.2f}°")
     elif find == 't2':
         def find_time_for_temperature(target_temperature, rate_constant):
@@ -517,8 +516,8 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
         # Find the time for a target temperature
         target_temperature = T3
         time_for_target_temperature = find_time_for_temperature(target_temperature, rate_constant)
-        result_text += f"|{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))|"
-        result_text += f"|Time for target temperature ({target_temperature}°F): {math.ceil(time_for_target_temperature)} minutes|"
+        result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
+        result_text += f"\nTime for target temperature ({target_temperature}°F): {math.ceil(time_for_target_temperature)} minutes\n"
         final_label.insert(tk.END, f"Time(t2) = {math.ceil(time_for_target_temperature)} minutes")
     
     #output_label.config(text=result_text)
@@ -619,13 +618,27 @@ def main():
     # Bind the function to the <<ComboboxSelected>> event
     combo.bind("<<ComboboxSelected>>", on_select)
 
+    global final_label
+    final_label = tk.Text(root, relief='flat', highlightthickness=1, height=2)
+    final_label.place(relx=0.5, rely=0.5, anchor='center',x=195, y=-97)
+    final_label.config(bg="black")
+    final_label.config(fg="white")
+    final_label.configure(width=35)
+
     def insert_multiline_text(text_widget, text):
-        if '|' in text:
-            lines = text.split('|')
-            for line in lines:
-                text_widget.insert(tk.END, line + '\n')
-        else:
-            text_widget.insert(tk.END, text)
+        lines = text.split('\n')
+        #num_lines = int(final_label.index('end-1c').split('.')[0])
+        #final_label.config(height=1, y=-100)
+        #height_increment = 0
+        #y_increment = 0
+        #for i in range(num_lines):
+        #    if i > 1:
+        #        height_increment += 1
+        #        y_increment += 10
+        #        final_label.config(height=1 + height_increment, y=-100 + y_increment)
+        for line in lines:
+            text_widget.insert(tk.END, line + '\n')
+
 
     def clear_listbox(listbox):
         listbox.delete(1.0, tk.END)
@@ -773,12 +786,7 @@ def main():
     entryText.config(state=tk.DISABLED)
     
     # Create a label to display the final answer
-    global final_label
-    final_label = tk.Text(root, relief='flat', highlightthickness=1, height=3)
-    final_label.place(relx=0.5, rely=0.5, anchor='center',x=190, y=-100)
-    final_label.config(bg="black")
-    final_label.config(fg="white")
-    final_label.configure(width=35)
+    
 
     root.mainloop()
 
