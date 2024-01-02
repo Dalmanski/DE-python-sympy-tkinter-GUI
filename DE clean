@@ -39,8 +39,10 @@ def replacement(problem):
 
 
 def Separable_Variables():
-    # Define the variables
-    y = Function('y')(x)   
+    # Define the variable
+    x = symbols('x')
+    # Define y as a function of x
+    y = Function('y')(x)
     problem = entries[0].get()
     problem = problem.replace(' ','')
     problem = problem.replace('y\'','Derivative(y,x)')
@@ -252,8 +254,8 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
         target_temperature = T3
         time_for_target_temperature = find_time_for_temperature(target_temperature, rate_constant)
         result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
-        result_text += f"\nTime for target temperature ({target_temperature}°F): {math.ceil(time_for_target_temperature)} minutes\n"
-        final_label.insert(tk.END, f"Time(t2) = {math.ceil(time_for_target_temperature)} minutes")
+        result_text += f"\nTime for target temperature ({target_temperature}°F): {math.ceil(time_for_target_temperature)} sec\n"
+        final_label.insert(tk.END, f"Time(t2) = {math.ceil(time_for_target_temperature)} sec")
     
     #output_label.config(text=result_text)
     return result_text
@@ -324,8 +326,8 @@ def main():
             result_text = "\nThis is Newton\'s Law of Cooling/Heating\n"
             result_text += "\nInput example:"
             result_text += "\nT1=18, Tm=70, T2=31, t1=1, t2=5, T3=?"
-            result_text += "\nT1=20, T2=22, T3=90, t1=1, t2=?, Tm=100"
-            result_text += "\nT1=20, T2=22, T3=98, t1=1, t2=?, Tm=100"
+            result_text += "\nT1=20, Tm=100, T2=22, t1=1, t2=?, T3=90"
+            result_text += "\nT1=20, Tm=100, T2=22, t1=1, t2=?, T3=98" 
             insert_multiline_text(listbox, result_text)
             entries = entryShow(6)
 
@@ -392,10 +394,6 @@ def main():
                         else:
                             result_text = "\nInvalid...\n"
                             insert_multiline_text(listbox, result_text)
-                    elif ',' in user_function:
-                        result_text = "\nThis topic doesn't require comma(,)\n"
-                        result_text += "\nSwitch the topic to growth and decay or newtons law of cooling/heating."
-                        insert_multiline_text(listbox, result_text)
                     else:
                         result_text = "\nThis is not a correct equation.\n"
                         result_text += "\nThe correct way to enter an equation is like this:"
