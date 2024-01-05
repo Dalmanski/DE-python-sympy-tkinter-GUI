@@ -1,39 +1,27 @@
-import sympy as sp
-from sympy import sympify, Eq, Derivative
+from customtkinter import CTk, CTkTextbox
+import tkinter as tk
 
-def find_iv_dv(equation_str):
-    try:
-        eqlhs, eqrhs = equation_str.split('=')
-        # Parse the differential equation
-        eqlhs = sympify(eqlhs.strip())
-        eqrhs = sympify(eqrhs.strip())
-        equation = Eq(eqlhs, eqrhs)
+def create_rounded_rectangle(x1, y1, x2, y2, radius):
+    points = [
+        (x1 + radius, y1),
+        (x2 - radius, y1),
+        (x2, y1 + radius),
+        (x2, y2 - radius),
+        (x2 - radius, y2),
+        (x1 + radius, y2),
+        (x1, y2 - radius),
+        (x1, y1 + radius),
+    ]
+    return tk.create_polygon(points, smooth=True)
 
-        # Extract variables from derivatives on the left-hand side
-        lhs_derivative_vars = [var for var in eqlhs.free_symbols if isinstance(Derivative(eqlhs, var), Derivative)]
+root = CTk()
+textbox = CTkTextbox(root)
+textbox.pack()
 
-        # Extract variables from the right-hand side
-        rhs_vars = [var for var in equation.rhs.free_symbols]
+canvas = textbox.get_canvas()
+rounded_rect = create_rounded_rectangle(5, 5, 200, 30, 10)  # Adjust dimensions as needed
+canvas.itemconfig(textbox.text_id, outline="", width=0)
+canvas.tag_lower(rounded_rect, textbox.text_id)
 
-        # Combine all variables, prioritizing those from derivatives
-        all_vars = sorted(set(lhs_derivative_vars + rhs_vars), key=lambda sym: sym.name)
-
-        if len(all_vars) == 2:
-            independent_variable, dependent_variable = all_vars
-            return independent_variable, dependent_variable
-    except sp.SympifyError:
-        print("Error parsing the equation.")
-
-    return None
-
-# Example usage
-equation = input("Enter your differential equation: ")
-result = find_iv_dv(equation)
-
-if result:
-    iv, dv = result
-    print(f"Independent variable (IV): {iv}")
-    print(f"Dependent variable (DV): {dv}")
-else:
-    print("Unable to identify independent and dependent variables. Please check your equation.")
+root.mainloop()
 

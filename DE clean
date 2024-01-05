@@ -2,6 +2,7 @@ import sympy as sp
 import string
 import re
 import tkinter as tk
+import customtkinter as ctk
 import math
 import tkinter.font as tkFont
 import numpy as np
@@ -10,26 +11,14 @@ from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, si
 from PIL import Image, ImageTk
 from scipy.optimize import fsolve
 
-
 howManyDerive = 0
 x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan asin acos atan e y\' y\'\'") 
-
-
-def find_variable(expr):
-    for term in expr.args:
-        if isinstance(term, sp.Mul):
-            variables = [symbol for symbol in term.free_symbols if symbol != C_1 and symbol != C_2 and symbol != k and symbol != e]
-            if variables:
-                return variables[0]
-
 
 def replacement(problem):
     replacements = {
         ' ': '',
-        '^': '**',
-        'c_1': 'C_1',
-        'c_2': 'C_2',
         'e^': 'exp',
+        '^': '**',
         '{': '(',
         '}': ')'
     }   
@@ -37,35 +26,56 @@ def replacement(problem):
         problem = problem.replace(find, replace)
     return problem
 
+def findDVIV(problemText):
+    IV = None
+    DV = None
+    numerator = True
+    i = 0
+    while i < len(problemText):
+        if problemText[i] == 'd':  # If it detects 'd'
+            i += 1
+            if numerator:  # If this is NUMERATOR
+                DV = ""
+                while i < len(problemText) and problemText[i] not in ['+', '-', '*', '/', '=']:  # Repeat until it finds a symbol
+                    DV += problemText[i]
+                    i += 1
+                numerator = False  # After numerator, it will change to the denominator target
+            elif not numerator:  # If this is DENOMINATOR
+                IV = ""
+                while i < len(problemText) and problemText[i] not in ['+', '-', '*', '/', '=']:  # Repeat until it finds a symbol
+                    IV += problemText[i]
+                    i += 1
+                numerator = True  # After denominator, it will change to the numerator target
+        i += 1
+    print(f"DV = {DV}, IV = {IV}")
+    # Create strings for displaying the variables
+    return DV, IV
 
-def Separable_Variables():
-    # Define the variable
-    x = symbols('x')
-    # Define y as a function of x
-    y = Function('y')(x)
+def Separable_Variables(): 
+    # DV is y, while IV is x
     problem = entries[0].get()
-    problem = problem.replace(' ','')
-    problem = problem.replace('y\'','Derivative(y,x)')
-    problem = problem.replace('dy/dx','Derivative(y,x)')
+    problem = problem.lower() # I discovered that sympify doesn't work on capital letter
+    problem = problem.replace(' ','') # Remove space
+    DV, IV = findDVIV(problem)
+    problem = problem.replace("d" + DV + "/d" + IV, "Derivative(" + DV + "," + IV + ")")
     eqlhs, eqrhs = problem.split('=')
     problem = replacement(problem)
-    problem = problem.replace('y','y(x)')
+    problem = problem.replace(DV, DV + "(" + IV + ")")
+    print(problem)
     # Initialize variables to store left-hand side and right-hand side of equations
     eqlhs, eqrhs = problem.split('=')
     # Parse the user-provided equations
-    eqlhs = sympify(eqlhs.strip())     
-    eqrhs = sympify(eqrhs.strip())
+    eqlhs = sympify(eqlhs)   
+    eqrhs = sympify(eqrhs)
     equation = Eq(eqlhs, eqrhs)
     result_text = f"\n<SOLUTION>\n"
     result_text += f"\nEquation :\n{sp.pretty(equation)}\n"
-    # Solve the differential equation
+    # Solve the seperable variable using dsolve()
     solution = dsolve(equation)
     result_text += f"\nFinal answer:\n{sp.pretty(solution)}"
-    y_solution = solution.rhs
     # Display the solution
     final_label.insert(tk.END, sp.pretty(solution))
     return result_text
-
 
 def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     find = None
@@ -168,7 +178,6 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
         final_label.insert(tk.END, f"{int(math.ceil(P_t))} population\n{int(math.ceil(growth_rate))} population/yr")
     return result_text
 
-
 def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):  
     find = None      
     if T1 == '?':
@@ -262,7 +271,7 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
   
 
 
-#FRONT END, diri mo mag design2
+#FRONT END, diri mo mag design2 ------------------------------------------------------------------------------------------------------------
 def main():
     root = tk.Tk()
     root.title('Differential Equation')
@@ -308,7 +317,7 @@ def main():
             result_text += "\ntan(x) * dy/dx - y = 0"
             result_text += "\ndy/dx - y**2 * exp(-2*x) = 0"
             result_text += "\ndy/dx - 3*x^2*y = 0"
-            result_text += "\ny'=2*x*y+3*y-4*x-6"
+            result_text += "\ndy/dx=2*x*y+3*y-4*x-6"
             result_text += "\ndy/dx = f(x)/g(y)"
             insert_multiline_text(listbox, result_text)
             entries = entryShow(1)
@@ -364,16 +373,13 @@ def main():
         listbox.delete(1.0, tk.END)
 
     def is_valid_sympy_expression(expression_str):
-        if not ',' in expression_str:
-            expression_str = expression_str.replace('y\'','dy/dx')
-            eqlhs, eqrhs = expression_str.split('=')
-            try:
-                sympify(eqlhs)
-                sympify(eqrhs)
-                return True
-            except SympifyError:
-                return False
-        else:
+        expression_str = expression_str.lower()
+        eqlhs, eqrhs = expression_str.split('=')
+        try:
+            sympify(eqlhs)
+            sympify(eqrhs)
+            return True
+        except SympifyError:
             return False
 
     def button_clicked():
@@ -472,9 +478,19 @@ def main():
     insert_multiline_text(entryText, result_text)
 
     # Create a button to trigger the action
-    button = tk.Button(root, text="Compute", command=button_clicked, relief='solid', highlightthickness=1)
-    button.place(relx=0.5, rely=0.5, anchor='center', y=-45)
-    button.configure(width=50)
+    # Create the button with rounded corners and custom styling
+    button = ctk.CTkButton(
+        master=root,
+        text="Compute",
+        corner_radius=10,
+        command=button_clicked,
+        width=200,
+        fg_color="black",  # Text color
+        bg_color="white",  # Background color
+        border_width=2,
+        border_color="white",
+    )
+    button.place(relx=0.5, rely=0.5, anchor=ctk.CENTER, y=-45)
 
     # Define custom font
     listbox = tk.Text(root, bg="white", wrap=tk.WORD, width=55, height=11)
