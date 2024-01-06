@@ -158,13 +158,14 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     result_text += f"\nGrowth rate = {growth_rate:.2f}\n"
 
     # Update result text with calculated values. math.ceil() means to round up decimal numbers
-    result_text += f"\nPopulation after {int(t2)} years: {int(math.ceil(P_t))}"
-    result_text += f"\nRate of population growth at t = {int(t2)}: {int(math.ceil(growth_rate))}"
+    result_text += f"\nPopulation after {int(t2)} years: {math.ceil(P_t)}"
+    result_text += f"\nRate of population growth at t = {int(t2)}: {int(math.ceil(growth_rate))}\n"
 
     # This part will show the final answer
     if half_life == True:
         # This is the formula to get Half life, abs() means convert to positive numbers, math.log() means logarithm
         t1 = math.log(2) / k
+        result_text += f"\nHalf-life: t1 = log(2) / {k:.6f}"
         result_text += f"\nHalf-life: t1 = {t1:.2f}"
 
     return result_text
