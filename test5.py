@@ -1,40 +1,30 @@
-import sympy as sp
+import tkinter as tk
 
-def findDVIV(problemText):
-    IV = None
-    DV = None
-    numerator = True
-    i = 0
-    while i < len(problemText):
-        if problemText[i] == 'd':  # If it detects 'd'
-            i += 1
-            if numerator:  # If this is NUMERATOR
-                DV = ""
-                while i < len(problemText) and problemText[i] not in ['+', '-', '*', '/', '=']:  # Repeat until it finds a symbol
-                    DV += problemText[i]
-                    i += 1
-                if i < len(problemText) and problemText[i] == '/':
-                    numerator = False  # After numerator, it will change to the denominator target
-                else:
-                    DV = None
-            elif not numerator:  # If this is DENOMINATOR
-                IV = ""
-                while i < len(problemText) and problemText[i] not in ['+', '-', '*', '/', '=']:  # Repeat until it finds a symbol
-                    IV += problemText[i]
-                    i += 1
-                numerator = True  # After denominator, it will change to the numerator target
-        i += 1
-    # Create strings for displaying the variables
-    return DV, IV
+def on_select(event):
+    print("Item selected!")
+
+def main():
+    root = tk.Tk()
+    root.title("Event Binding Example")
+
+    label = tk.Label(root, text="Click the label!")
+    label.pack(padx=20, pady=20)
+
+    # Bind the left mouse button click event to on_select function
+    label.bind("<Button-1>", on_select)
+
+    root.mainloop()
+
+if __name__ == '__main__':
+    main()
 
 
-while True:
-  equation = input("Enter your equation: ")
-  dv, iv = findDVIV(equation)
-  print(f"DV = {dv}, IV = {iv}")
-  try_again = input("Do you want to enter another equation? (y/n): ")
-  if try_again.lower() != "y":
-    break
+
+
+
+
+
+
 
 
 

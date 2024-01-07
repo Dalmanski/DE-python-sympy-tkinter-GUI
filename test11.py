@@ -1,27 +1,20 @@
-from customtkinter import CTk, CTkTextbox
-import tkinter as tk
+from sympy import Function, classify_ode, Eq, Derivative, exp
+from sympy.abc import x
 
-def create_rounded_rectangle(x1, y1, x2, y2, radius):
-    points = [
-        (x1 + radius, y1),
-        (x2 - radius, y1),
-        (x2, y1 + radius),
-        (x2, y2 - radius),
-        (x2 - radius, y2),
-        (x1 + radius, y2),
-        (x1, y2 - radius),
-        (x1, y1 + radius),
-    ]
-    return tk.create_polygon(points, smooth=True)
+f = Function('f')
+eq = classify_ode(Eq(f(x).diff(x), 0), f(x))
 
-root = CTk()
-textbox = CTkTextbox(root)
-textbox.pack()
+print(eq)
+#eq = classify_ode(f(x).diff(x, 2) + 3*f(x).diff(x) + 2*f(x) - 4)
+eq = classify_ode(Derivative(f,x) - f**2 * exp(-2*x) , 0)
 
-canvas = textbox.get_canvas()
-rounded_rect = create_rounded_rectangle(5, 5, 200, 30, 10)  # Adjust dimensions as needed
-canvas.itemconfig(textbox.text_id, outline="", width=0)
-canvas.tag_lower(rounded_rect, textbox.text_id)
+print(eq)
 
-root.mainloop()
+
+
+
+
+
+
+
 

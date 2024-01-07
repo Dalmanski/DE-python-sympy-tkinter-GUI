@@ -8,12 +8,9 @@ import tkinter.font as tkFont
 import numpy as np
 from customtkinter import *
 from tkinter import ttk, font
-from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, asin, acos, atan, Derivative, SympifyError
+from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, asin, acos, atan, Derivative, SympifyError, sqrt
 from PIL import Image, ImageTk
 from scipy.optimize import fsolve
-
-howManyDerive = 0
-x, y, k, t, a, c, C_1, C_2, sin, cos, tan, asin, acos, atan, e, y_prime, y_prime2 = sp.symbols("x y k t a c C_1 C_2 sin cos tan asin acos atan e y\' y\'\'") 
 
 def replacement(problem):
     replacements = {
@@ -56,18 +53,20 @@ def Separable_Variables():
     # Remove space
     problem = problem.replace(' ','') 
     # Find the Dependent variable and Independent variable, for ex: DV is y, while IV is x
-    DV, IV = findDVIV(problem) 
+    DV, IV = findDVIV(problem.lower()) 
     # Actually, sympify doesn't work on capital letter
     DV = DV.lower()
     IV = IV.lower()
     # Ex: if DV=y and IV=x, replace dy/dx to Derivative(y,x)
     problem = problem.replace("d" + DV + "/d" + IV, "Derivative(" + DV + "," + IV + ")") 
-    # Split the left side and right side
-    eqlhs, eqrhs = problem.split('=') 
     # Replace the symbol to make it work when sympify like from ^ to **
     problem = replacement(problem) 
+    # I replace the word "Derivative" to "|" to prevent changing letter of DV and IV from the str "Derivative"
+    problem = problem.replace("Derivative", "|") 
     # Make sure the DV is distributed to IV. Ex: if DV=y and IV=x, replace y to y(x)
     problem = problem.replace(DV, DV + "(" + IV + ")") 
+    # After that, I replace back from "|" to "Derivative"
+    problem = problem.replace("|", "Derivative") 
     # Initialize variables to store left-hand side and right-hand side of equations
     eqlhs, eqrhs = problem.split('=')
     # Convert str to sympify and merge them into Eq()
@@ -84,7 +83,6 @@ def Separable_Variables():
 
 def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     find = None
-    half_life = False
 
     if p1 == '?':
         result_text = "\nSorry, we didn't have a formula on finding p1"
@@ -95,20 +93,19 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     elif rt == '?':
         result_text = "\nSorry, we didn't have a formula on finding rt"
         return result_text
+    elif t1 == '?':
+        find = 't1'
     elif t2 == '?':
         result_text = "\nSorry, we didn't have a formula on finding t2"
         return result_text
     elif p2 == '?':
-        result_text = "\nSorry, we didn't have a formula on finding t"
+        result_text = "\nSorry, we didn't have a formula on finding p2"
         return result_text
     elif p3 == '?':
         find = 'p3'
     else:
         result_text = "\nSome of them are missing..."
         return result_text
-    
-    if t1 == '?':
-        half_life = True
 
     p1 = float(p1)
     rp = float(rp)
@@ -131,46 +128,55 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     result_text += f"\nPopulation (p2) = {p2}"
     result_text += f"\nPopulation at t={t2} (p3) = {p3}\n"
 
+    result_text += "\np1 = ce^(k*t1)"
+    result_text += f"\n{int(p1)} = ce^(k({t1}))"
+    result_text += f"\nc = {int(p1)}\n"
+    
+    # Get the value of c
+    c = p1
     # Calculate population
     if int(rp) != 0:
-        P0 = p1
         # This is the formula of finding k
         k = np.log(1 + (rp / 100)) / rt
         # Show the solution
-        result_text += f"\nk = log(1+({int(rp)}/100))/{int(rt)}"
+        result_text += f"\np2 = {int(p1)}(1 + {rp / 100}) = {int(p1*(1 + (rp / 100)))}\n"
+        result_text += "\np2 = ce^(k(rt))"
+        result_text += f"\n{int(p1*(1 + (rp / 100)))} = {int(c)}e^k({int(rt)})"
         result_text += f"\nk = {k:.6f}\n"
     else: 
         # If there's no rate percent (rp) and theres p2 on finding p3, Calculate the decay constant
         # This is the formula of finding k
         k = np.log(p2 / p1) / rt 
         # Show the solution
-        result_text += f"\nk = log({int(p2)}/{int(p1)}))/{int(rt)}"
+        result_text += "\np2 = ce^(k(rt))"
+        result_text += f"\n{int(p2)} = {int(c)}e^(k({int(rt)}))"
         result_text += f"\nk = {k:.6f}\n"
 
-    # Show the total population by using this formula p1 * exp(k * t2), k.:6f means 6 decimals while .:2f is 2 decimals
-    P_t = p1 * np.exp(k * t2)
-    result_text += f"\nP_t = {int(p2)}*e^({k:.6f}*{int(t2)})"
-    result_text += f"\nP_t = {P_t:.2f}\n"
-
-    # Calculate rate of population growth
-    growth_rate = P_t * k
-    result_text += f"\nGrowth rate = {k:.6f}*{int(P_t)}"
-    result_text += f"\nGrowth rate = {growth_rate:.2f}\n"
-
-    # Update result text with calculated values. math.ceil() means to round up decimal numbers
-    result_text += f"\nPopulation after {int(t2)} years: {math.ceil(P_t)}"
-    result_text += f"\nRate of population growth at t = {int(t2)}: {int(math.ceil(growth_rate))}\n"
-
-    # This part will show the final answer
-    if half_life == True:
+    if find == 'p3':
+        # Show the total population by using this formula p1 * exp(k * t2), k.:6f means 6 decimals while .:2f is 2 decimals
+        P_t = p1 * np.exp(k * t2)
+        # Calculate rate of population growth
+        growth_rate = P_t * k  
+        result_text += "\np3 = ce^(k(t2))"
+        result_text += f"\np3 = {int(c)}e^({k:.6f}({int(t2)}))"
+        result_text += f"\np3 = {P_t:.2f}\n"
+        # Show the growth rate
+        result_text += "\ndP/dt = (c*k)*e^(k(t2))"
+        result_text += f"\ndP/dt = {c}({k:.6f})e^{k:.6f}*{int(t2)}"
+        result_text += f"\ndP/dt = {growth_rate:.2f}p/yr\n"
+        # Update result text with calculated values. math.ceil() means to round up decimal numbers
+        result_text += f"\nPopulation after {int(t2)} years: {math.ceil(P_t)}"
+        result_text += f"\nRate of population growth at t = {int(t2)}: {math.ceil(growth_rate)}\n"
+    elif find == 't1':
         # This is the formula to get Half life, abs() means convert to positive numbers, math.log() means logarithm
-        t1 = math.log(2) / k
-        result_text += f"\nHalf-life: t1 = log(2) / {k:.6f}"
+        t1 = -math.log(c / p3) / k
+        # This part will show the final answer
+        result_text += f"\nHalf-life: t1 = -log({int(c)} / {int(p3)}) / {k:.6f}"
         result_text += f"\nHalf-life: t1 = {t1:.2f}"
 
     return result_text
 
-def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):  
+def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, t3, T3):  
     find = None      
     if T1 == '?':
         result_text = "\nSorry, we didn't have a formula on finding T1"
@@ -185,7 +191,10 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
         result_text = "\nSorry, we didn't have a formula on finding t1"
         return result_text
     elif t2 == '?':
-        find = 't2'
+        result_text = "\nSorry, we didn't have a formula on finding t2"
+        return result_text
+    elif t3 == '?':
+        find = 't3'
     elif T3 == '?':
         find = 'T3'
     else:
@@ -195,9 +204,9 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
     T1 = float(T1) 
     Tm = float(Tm)
     T2 = float(T2)
-    t1 = float(t1)
-    if t2 != '?':
-        t2 = float(t2)
+    t2 = float(t2)
+    if t3 != '?':
+        t3 = float(t3)
     if T3 != '?':
         T3 = float(T3)
 
@@ -207,58 +216,72 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, T3):
     result_text += f"\nInitial Temperature (T1) = {T1}"
     result_text += f"\nRoom Temperature (Tm) = {Tm}"
     result_text += f"\nAfter Temperature (T2) = {T2}"
-    result_text += f"\nMinute later (t1) = {t1}"
-    result_text += f"\nTime after (t2) = {t2}"
-    result_text += f"\nTemperature after t = {t2} (T3) = {T3}\n"
+    result_text += f"\nInitial Time (t1) = {t1}"
+    result_text += f"\nMinute later (t2) = {t2}"
+    result_text += f"\nTime after (t3) = {t3}"
+    result_text += f"\nTemperature after t = {t3} (T3) = {T3}\n"
 
     def temperature_reading(initial_temperature, room_temperature, t, rate_constant):
-        # Calculate the temperature reading at time t, formula: Tm + (T1 - Tm) * exp(-k*t1))
-        temperature = room_temperature + (initial_temperature - room_temperature) * np.exp(-rate_constant * t)   
+        # Calculate the temperature reading at time t, formula: Tm + (T1 - Tm) * exp(-k*t2))
+        temperature = room_temperature + (initial_temperature - room_temperature) * np.exp(rate_constant * t)   
         return temperature
 
+    # Formula of C
+    C = T1 - Tm
     # Calculate the rate constant
-    equation = lambda rate_constant: Tm + (T1 - Tm) * np.exp(-rate_constant * t1)
+    equation = lambda rate_constant: Tm + C * np.exp(rate_constant * t2)
     # Solve for the rate constant using the temperature_after_min value
     rate_constant = fsolve(lambda x: equation(x) - T2, 0.2)[0]
-    result_text += f"\n{int(equation(rate_constant))} = {int(Tm)} + {int(Tm-T1)}e^k({int(t1)})"
-    result_text += f"\nk = {rate_constant}"
+    result_text += "\nT1 = Tm + Ce^(k*t1)"
+    result_text += f"\n{int(T1)} = {int(Tm)} + Ce^(k{t1})"
+    result_text += f"\nC = {int(C)}°\n"
+
+    result_text += f"\nT2 = Tm + Ce^k(t2)"
+    # equation(rate_constant) is a formula of finding T2
+    result_text += f"\n{int(equation(rate_constant))} = {int(Tm)} + {int(C)}e^k({int(t2)})"
+    result_text += f"\nk = {rate_constant:.8f}\n"
 
     if find == 'T3':
         # This is the formula to find the temperature after time (T3)
         # Calculate the temperature reading after minutes
-        temperature_after_t2 = temperature_reading(T1, Tm, t2, rate_constant)
+        temperature_after_t3 = temperature_reading(T1, Tm, t3, rate_constant)
         # Show the solution and final answer
-        result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
-        result_text += f"\nTemperature reading after t = {int(t2)}: {temperature_after_t2:.2f}°\n"
-    elif find == 't2':
-        # This is the formula to find the Time after (t2)
+        result_text += "\nT3 = Tm + Ce^(k*t)"
+        result_text += f"\nT3 = {int(Tm)} + {int(C)}e^({rate_constant:.8f}{int(t2)}))\n"
+        result_text += f"\nTemperature reading after t = {int(t3)}: {temperature_after_t3:.2f}°\n"
+    elif find == 't3':
+        # This is the formula to find the Time after (t3)
         def find_time_for_temperature(target_temperature, rate_constant):
-            # Define the equation for temperature at time t, formula: Tm + (T1 - Tm) * exp(-k*t1)) - T3
+            # Define the equation for temperature at time t, formula: Tm + C * exp(k*t2)) - T3
             equation = lambda t: temperature_reading(T1, Tm, t, rate_constant) - target_temperature
             # Solve for time using fsolve
             time = fsolve(equation, 0.2)[0]
             return time
         # Find the time for a target temperature
         target_temperature = T3
-        # Formula: find time for temperature = Tm + (T1 - Tm * exp(-k*t))
+        # Formula: find time for temperature = Tm + C * exp(k*t2)
         time_for_target_temperature = find_time_for_temperature(target_temperature, rate_constant)
         # Show the solution and final answer
-        result_text += f"\n{int(Tm)} + ({int(T1)} - {int(Tm)} * e^(-{rate_constant} * {int(t1)}))\n"
+        result_text += "\nT3 = Tm + Ce^(k*t2)"
+        result_text += f"\n{int(T3)} = {int(Tm)} + {int(C)}e^({rate_constant:.8f}{int(t2)})"
+        result_text += f"\nT3 = {time_for_target_temperature:.2f}\n"
         result_text += f"\nTime for target temperature ({target_temperature}°): {math.ceil(time_for_target_temperature)} sec\n"
 
     return result_text
 
+
 #FRONT END, diri mo mag design2 ------------------------------------------------------------------------------------------------------------
 def main(): 
+
     root = CTk()
     set_appearance_mode("dark")
     root.title('Differential Equation')
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    root.geometry(f"{screen_width}x{screen_height}")
-    root.resizable(False, False)
+    root.geometry(f"{screen_width-100}x{screen_height-100}")
     root._state_before_windows_set_titlebar_color = 'zoomed'
-    
+    # root.resizable(False, False)
+
     def load_image(root, current_index, image_paths):
         global label  # Access the global label variable
         screen_width = root.winfo_screenwidth()
@@ -270,6 +293,7 @@ def main():
         label.place(x=-2, y=-2)
         label.lower()
         label.image = photo_image  # Keep a reference to the image to prevent it from being garbage collected
+        label.pack(expand=True, fill='both')
         return label
 
     def show_image(root, current_index, image_paths):
@@ -323,24 +347,24 @@ def main():
             entries = entryShow(1)
         elif topic == "Growth and Decay":
             show_image(root, 1, image_paths)
-            insert_multiline_text(entryText, "p1:              p2:               rp:               rt:                t1:               t2:               p3:")
+            insert_multiline_text(entryText, "p1:              p2:               rp:               rt:                t1:                t2:               p3:")
             result_text = "\nThis is Growth and Decay.\n"
             result_text += "\nInput example:"
             result_text += "\np1=5000, p2=5000, rp=15, rt=10, t1=0, t2=30, p3=?"
             result_text += "\np1=100,  p2=96,  rp=0,  rt=100, t1=0, t2=258,  p3=?"
-            result_text += "\np1=100,  p2=96,  rp=0,  rt=100, t1=?, t2=258,  p3=?"
+            result_text += "\np1=100,  p2=96,  rp=0,  rt=100, t1=?, t2=258,  p3=50"
             insert_multiline_text(listbox, result_text)
             entries = entryShow(7)
         elif topic == "Newton\'s Law of Cooling/Heating":
-            show_image(root, 2, image_paths)
-            insert_multiline_text(entryText, "      T1:              Tm:               T2:               t1:                t2:               T3:        ")
+            show_image(root, 1, image_paths)
+            insert_multiline_text(entryText, "T1:              Tm:               T2:               t1:                t2:                t3:               T3:")
             result_text = "\nThis is Newton\'s Law of Cooling/Heating\n"
             result_text += "\nInput example:"
-            result_text += "\nT1=18, Tm=70, T2=31, t1=1, t2=5, T3=?"
-            result_text += "\nT1=20, Tm=100, T2=22, t1=1, t2=?, T3=90"
-            result_text += "\nT1=20, Tm=100, T2=22, t1=1, t2=?, T3=98" 
+            result_text += "\nT1=18, Tm=70, T2=31, t1=0, t2=1, t3=5, T3=?"
+            result_text += "\nT1=20, Tm=100, T2=22, t1=0, t2=1, t3=?, T3=90"
+            result_text += "\nT1=20, Tm=100, T2=22, t1=0, t2=1, t3=?, T3=98" 
             insert_multiline_text(listbox, result_text)
-            entries = entryShow(6)
+            entries = entryShow(7)
 
         #print(f"Selected option: {topic}")
         listbox.config(state=tk.DISABLED)
@@ -409,7 +433,8 @@ def main():
                     inp4 = entries[3].get()
                     inp5 = entries[4].get()
                     inp6 = entries[5].get()
-                    result_text = Newtons_Law_of_Cooling_Heating(inp1, inp2, inp3, inp4, inp5, inp6)
+                    inp7 = entries[6].get()
+                    result_text = Newtons_Law_of_Cooling_Heating(inp1, inp2, inp3, inp4, inp5, inp6, inp7)
                     insert_multiline_text(listbox, result_text)
                 else:
                     result_text = f"\nThere's no = sign.\n"
@@ -472,7 +497,6 @@ def main():
     entryText.insert('end', result_text ,'tag-center')
 
     # Create a button to trigger the action
-    # Create the button with rounded corners and custom styling
     button = ctk.CTkButton(
         master=root,
         text="C O M P U T E",
@@ -488,9 +512,27 @@ def main():
     )
     button.place(relx=0.5, rely=0.5, anchor=ctk.CENTER, y=-40)
 
+    # Create a button to reset
+    reset_button = ctk.CTkButton(
+        master=root,
+        text="RESET",
+        corner_radius=10,
+        command=on_select,
+        width=100,
+        height=35,
+        fg_color="black",  # Text color
+        bg_color="black",  # Background color
+        border_width=1,
+        border_color="white",
+        font=('Julius', 15, "bold")
+    )
+    reset_button.place(relx=0.5, rely=0.5, anchor=ctk.CENTER, x=500, y=-40)
+    # Bind the left mouse button click event to on_select function
+    reset_button.bind("<Button-1>", on_select)
+    
     # Define custom font
     listbox = tk.Text(root, bg="#3A3A3A", wrap=tk.WORD, width=87, height=10, font=('Terminal', 20), relief='flat', spacing1=10, spacing2=10, spacing3=10)
-    listbox.place(relx=0.5, rely=0.5, anchor='center', y=240, )
+    listbox.place(relx=0.5, rely=0.5, anchor='center', y=240)
     result_text = "\nWelcome to Differential Equation.\n"
     result_text += "\nPick a topic."
     listbox.tag_configure("tag-center", justify='center')
