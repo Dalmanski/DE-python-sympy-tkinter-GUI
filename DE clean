@@ -8,7 +8,7 @@ import tkinter.font as tkFont
 import numpy as np
 from customtkinter import *
 from tkinter import ttk, font
-from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, asin, acos, atan, Derivative, SympifyError, sqrt
+from sympy import symbols, Function, dsolve, Eq, exp, simplify, sympify, tan, sin, cos, asin, acos, atan, Derivative, SympifyError, sqrt, log
 from PIL import Image, ImageTk
 from scipy.optimize import fsolve
 
@@ -52,11 +52,10 @@ def Separable_Variables():
     problem = entries[0].get() 
     # Remove space
     problem = problem.replace(' ','') 
+    problem = problem.lower()
     # Find the Dependent variable and Independent variable, for ex: DV is y, while IV is x
-    DV, IV = findDVIV(problem.lower()) 
-    # Actually, sympify doesn't work on capital letter
-    DV = DV.lower()
-    IV = IV.lower()
+    DV, IV = findDVIV(problem) 
+ 
     # Ex: if DV=y and IV=x, replace dy/dx to Derivative(y,x)
     problem = problem.replace("d" + DV + "/d" + IV, "Derivative(" + DV + "," + IV + ")") 
     # Replace the symbol to make it work when sympify like from ^ to **
@@ -106,34 +105,42 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
     else:
         result_text = "\nSome of them are missing..."
         return result_text
+    
+    # Show the Given
+    result_text = "\n<SOLUTION>\n"
 
     p1 = float(p1)
     rp = float(rp)
     rt = float(rt)
     if t1 != '?':
-        p3 = float(t1)
+        t1 = float(t1)
+    else:
+        result_text += "\nFind t1\n"
+        t1 = int(0)
     t2 = float(t2)
     p2 = float(p2)
     if p3 != '?':
         p3 = float(p3)
+    else:
+        result_text += "\nFind p3\n"
+        p3 = int(0)
 
-    # Show the Given
-    result_text = "\n<SOLUTION>\n"
     result_text += "\nGiven:"
-    result_text += f"\nInitial Population (p1) = {p1}"
-    result_text += f"\nRate percent (rp) = {rp}"
-    result_text += f"\nRate time (rt) = {rt}"
-    result_text += f"\nTime (t1) = {t1}"
-    result_text += f"\nTime (t2) = {t2}"
-    result_text += f"\nPopulation (p2) = {p2}"
-    result_text += f"\nPopulation at t={t2} (p3) = {p3}\n"
+    result_text += f"\nInitial Population (p1) = {int(p1)}"
+    result_text += f"\nRate percent (rp) = {int(rp)}"
+    result_text += f"\nRate time (rt) = {int(rt)}"
+    result_text += f"\nTime (t1) = {int(t1)}"
+    result_text += f"\nTime (t2) = {int(t2)}"
+    result_text += f"\nPopulation (p2) = {int(p2)}"
+    result_text += f"\nPopulation at t={int(t2)} (p3) = {int(p3)}\n"
+
+    # Get the value of c
+    c = p1 - t1
 
     result_text += "\np1 = ce^(k*t1)"
     result_text += f"\n{int(p1)} = ce^(k({t1}))"
-    result_text += f"\nc = {int(p1)}\n"
+    result_text += f"\nc = {int(c)}\n"
     
-    # Get the value of c
-    c = p1
     # Calculate population
     if int(rp) != 0:
         # This is the formula of finding k
@@ -144,7 +151,7 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
         result_text += f"\n{int(p1*(1 + (rp / 100)))} = {int(c)}e^k({int(rt)})"
         result_text += f"\nk = {k:.6f}\n"
     else: 
-        # If there's no rate percent (rp) and theres p2 on finding p3, Calculate the decay constant
+        # If there's no rate percent (rp), Calculate the decay constant
         # This is the formula of finding k
         k = np.log(p2 / p1) / rt 
         # Show the solution
@@ -154,7 +161,7 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
 
     if find == 'p3':
         # Show the total population by using this formula p1 * exp(k * t2), k.:6f means 6 decimals while .:2f is 2 decimals
-        P_t = p1 * np.exp(k * t2)
+        P_t = c * np.exp(k * t2)
         # Calculate rate of population growth
         growth_rate = P_t * k  
         result_text += "\np3 = ce^(k(t2))"
@@ -162,7 +169,7 @@ def Growth_And_Decay(p1, p2, rp, rt, t1, t2, p3):
         result_text += f"\np3 = {P_t:.2f}\n"
         # Show the growth rate
         result_text += "\ndP/dt = (c*k)*e^(k(t2))"
-        result_text += f"\ndP/dt = {c}({k:.6f})e^{k:.6f}*{int(t2)}"
+        result_text += f"\ndP/dt = {int(c)}({k:.6f})e^{k:.6f}*{int(t2)}"
         result_text += f"\ndP/dt = {growth_rate:.2f}p/yr\n"
         # Update result text with calculated values. math.ceil() means to round up decimal numbers
         result_text += f"\nPopulation after {int(t2)} years: {math.ceil(P_t)}"
@@ -201,29 +208,36 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, t3, T3):
         result_text = "\nSome of them are missing..."
         return result_text
     
+    # Show the Given
+    result_text = "\n<SOLUTION>\n"
+    
     T1 = float(T1) 
     Tm = float(Tm)
     T2 = float(T2)
     t2 = float(t2)
     if t3 != '?':
         t3 = float(t3)
+    else:
+        result_text += "\nFind t3\n"
+        t3 = int(0)
     if T3 != '?':
         T3 = float(T3)
+    else:
+        result_text += "\nFind T3\n"
+        T3 = int(0)
 
-    # Show the Given
-    result_text = "\n<SOLUTION>\n"
     result_text += "\nGiven:"
-    result_text += f"\nInitial Temperature (T1) = {T1}"
-    result_text += f"\nRoom Temperature (Tm) = {Tm}"
-    result_text += f"\nAfter Temperature (T2) = {T2}"
-    result_text += f"\nInitial Time (t1) = {t1}"
-    result_text += f"\nMinute later (t2) = {t2}"
-    result_text += f"\nTime after (t3) = {t3}"
-    result_text += f"\nTemperature after t = {t3} (T3) = {T3}\n"
+    result_text += f"\nInitial Temperature (T1) = {int(T1)}"
+    result_text += f"\nRoom Temperature (Tm) = {int(Tm)}"
+    result_text += f"\nAfter Temperature (T2) = {int(T2)}"
+    result_text += f"\nInitial Time (t1) = {int(t1)}"
+    result_text += f"\nMinute later (t2) = {int(t2)}"
+    result_text += f"\nTime after (t3) = {int(t3)}"
+    result_text += f"\nTemperature after t = {int(t3)} (T3) = {int(T3)}\n"
 
-    def temperature_reading(initial_temperature, room_temperature, t, rate_constant):
-        # Calculate the temperature reading at time t, formula: Tm + (T1 - Tm) * exp(-k*t2))
-        temperature = room_temperature + (initial_temperature - room_temperature) * np.exp(rate_constant * t)   
+    def temperature_reading(C, room_temperature, t, rate_constant):
+        # Calculate the temperature reading at time t, formula: Tm + Ce^(-k*t2))
+        temperature = room_temperature + C * np.exp(rate_constant * t)   
         return temperature
 
     # Formula of C
@@ -244,16 +258,16 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, t3, T3):
     if find == 'T3':
         # This is the formula to find the temperature after time (T3)
         # Calculate the temperature reading after minutes
-        temperature_after_t3 = temperature_reading(T1, Tm, t3, rate_constant)
+        temperature_after_t3 = temperature_reading(C, Tm, t3, rate_constant)
         # Show the solution and final answer
         result_text += "\nT3 = Tm + Ce^(k*t)"
-        result_text += f"\nT3 = {int(Tm)} + {int(C)}e^({rate_constant:.8f}{int(t2)}))\n"
+        result_text += f"\nT3 = {int(Tm)} + {int(C)}e^({rate_constant:.8f}*{int(t2)}))\n"
         result_text += f"\nTemperature reading after t = {int(t3)}: {temperature_after_t3:.2f}°\n"
     elif find == 't3':
         # This is the formula to find the Time after (t3)
         def find_time_for_temperature(target_temperature, rate_constant):
             # Define the equation for temperature at time t, formula: Tm + C * exp(k*t2)) - T3
-            equation = lambda t: temperature_reading(T1, Tm, t, rate_constant) - target_temperature
+            equation = lambda t: temperature_reading(C, Tm, t, rate_constant) - target_temperature
             # Solve for time using fsolve
             time = fsolve(equation, 0.2)[0]
             return time
@@ -263,7 +277,7 @@ def Newtons_Law_of_Cooling_Heating(T1, Tm, T2, t1, t2, t3, T3):
         time_for_target_temperature = find_time_for_temperature(target_temperature, rate_constant)
         # Show the solution and final answer
         result_text += "\nT3 = Tm + Ce^(k*t2)"
-        result_text += f"\n{int(T3)} = {int(Tm)} + {int(C)}e^({rate_constant:.8f}{int(t2)})"
+        result_text += f"\n{int(T3)} = {int(Tm)} + {int(C)}e^({rate_constant:.8f}*{int(t2)})"
         result_text += f"\nT3 = {time_for_target_temperature:.2f}\n"
         result_text += f"\nTime for target temperature ({target_temperature}°): {math.ceil(time_for_target_temperature)} sec\n"
 
@@ -314,7 +328,6 @@ def main():
     style.configure('TCombobox', relief='solid', highlightbackground='black', highlightcolor='black', highlightthickness=0, justify='center')
     
     combo = ttk.Combobox(root, style='TCombobox', font=('Terminal', 20), state='readonly', justify='center')
-    #combo.set('Newton\'s Law of Cooling/Heating')   
     combo.set('Pick a topic')   
     combo['values'] = ('Separable Variables', 'Growth and Decay', 'Newton\'s Law of Cooling/Heating')
     selected_item = combo.get()
@@ -449,18 +462,11 @@ def main():
         listbox.config(state=tk.DISABLED)
 
     def create_entry(root, x_offset, numEntry):
-        if numEntry == 6:
-            entry = tk.Entry(root, relief='flat', highlightthickness=0, justify='center', font=('Verdana', 16))
-            entry.pack(fill='x')
-            entry.place(relx=0.5, rely=0.5, anchor='center', x=x_offset-350, y=-140)
-            entry.config(bg="#3A3A3A", fg="white")
-            entry.configure(width=8)
-        else:
-            entry = tk.Entry(root, relief='flat', highlightthickness=0, justify='center', font=('Verdana', 16))
-            entry.pack(fill='x')
-            entry.place(relx=0.5, rely=0.5, anchor='center', x=x_offset-420, y=-140)
-            entry.config(bg="#3A3A3A", fg="white")
-            entry.configure(width=8)
+        entry = tk.Entry(root, relief='flat', highlightthickness=0, justify='center', font=('Verdana', 16))
+        entry.pack(fill='x')
+        entry.place(relx=0.5, rely=0.5, anchor='center', x=x_offset-420, y=-145)
+        entry.config(bg="#3A3A3A", fg="white")
+        entry.configure(width=8)
         return entry
 
     def entryShow(numEntry):
@@ -472,7 +478,7 @@ def main():
         if numEntry == 1:
             entry = tk.Entry(root, relief='flat', highlightthickness=0, justify='center', font=('Verdana', 16))
             entry.pack(fill='x')
-            entry.place(relx=0.5, rely=0.5, anchor='center', x=-0, y=-140)
+            entry.place(relx=0.5, rely=0.5, anchor='center', x=-0, y=-145)
             entry.config(bg="#3A3A3A", fg="white")
             entry.configure(width=70)
             entries.append(entry)
