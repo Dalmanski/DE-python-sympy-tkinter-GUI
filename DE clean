@@ -52,10 +52,10 @@ def Separable_Variables():
     problem = entries[0].get() 
     # Remove space
     problem = problem.replace(' ','') 
+    # I found out that sympify doesn't work on capital letter
     problem = problem.lower()
     # Find the Dependent variable and Independent variable, for ex: DV is y, while IV is x
     DV, IV = findDVIV(problem) 
- 
     # Ex: if DV=y and IV=x, replace dy/dx to Derivative(y,x)
     problem = problem.replace("d" + DV + "/d" + IV, "Derivative(" + DV + "," + IV + ")") 
     # Replace the symbol to make it work when sympify like from ^ to **
